@@ -42,4 +42,16 @@ No exact historical source snapshots were found in the authoritative workspace o
 - Phase 11.5 integrated the 116 sprites and stabilized runtime behavior.
 - Phase 12 created and audited the Windows x64 release.
 
-Phases 13–14 were deferred to V2 and are not represented as implemented. Phase 15 begins only after the canonical Phase 12 baseline; its future commits will be genuine normal Git history.
+Phases 13–14 were deferred to V2 and are not represented as implemented.
+
+## Genuine Git development from Phase 15
+
+Phase 15 — System Awareness begins after canonical Phase 12 commit `0b1925286e0dff8c5c6bff532ac2fc27cd864d0d` and tag `v0.1.0-windows`. Unlike the earlier reconstructed marker history, Phase 15 is ordinary development performed on the real feature branch `phase-15-system-awareness` with logical source, integration, test, and documentation commits.
+
+Phase 15 adds one main-process owner for Windows lock/unlock, suspend/resume, AC/battery, display/work-area changes, and a single 15-second idle sampler with a 120-second threshold. It connects this state through validated typed IPC to a renderer context controller, applies hard lock/suspend safety and soft idle/battery policy, rebases clocks after resume, and retains the existing privacy/security boundaries. Automated engineering verification is complete; the branch remains unmerged until the normal-Windows manual checklist validates physical OS events.
+
+History categories are therefore:
+
+- **Phases 1–12:** historically reconstructed milestone markers, followed by the real canonical Phase 12 baseline snapshot.
+- **Phases 13–14:** deferred to V2 and not implemented.
+- **Phase 15 onward:** genuine Git development using normal feature branches and commits as work occurs.
