@@ -19,6 +19,7 @@ import {
 } from "../shared/settings";
 import type { PlatformService } from "./platform/PlatformService";
 import { PET_WINDOW_HEIGHT, PET_WINDOW_WIDTH } from "./petWindow";
+import type { SystemAwarenessSnapshot } from "../shared/systemAwareness";
 
 interface DragSession {
   windowId: number;
@@ -78,8 +79,11 @@ export const registerPetWindowIpc = (
   settings?: {
     get(): ThukunaSettings;
     update(request: SettingUpdateRequest): Promise<ThukunaSettings>;
+  },
+  systemAwareness?: {
+    get(): SystemAwarenessSnapshot;
   }
-): void => {
+): (() => void) => {
   let dragSession: DragSession | null = null;
 
   ipcMain.on(IPC_CHANNELS.dragStart, (event, point: unknown) => {
@@ -203,4 +207,22 @@ export const registerPetWindowIpc = (
       }
     );
   }
+
+  if (systemAwareness !== undefined) {
+    ipcMain.handle(
+      IPC_CHANNELS.systemAwarenessGet,
+      (event): SystemAwarenessSnapshot => {
+        if (getPetWindowForEvent(event, getPetWindow) === null) {
+          throw new Error("Invalid system-awareness request.");
+        }
+        return systemAwareness.get();
+      }
+    );
+  }
+
+  return () => {
+    if (systemAwareness !== undefined) {
+      ipcMain.removeHandler(IPC_CHANNELS.systemAwarenessGet);
+    }
+  };
 };

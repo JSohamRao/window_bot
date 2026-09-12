@@ -16,6 +16,8 @@ import {
   createPlatformService,
   type PlatformService
 } from "./platform/PlatformService";
+import { SystemAwarenessService } from "./systemAwareness/SystemAwarenessService";
+import { createElectronSystemAwarenessProvider } from "./systemAwareness/ElectronSystemAwarenessProvider";
 
 console.info("[THUKUNA startup] Main module reached.");
 
@@ -23,6 +25,8 @@ let petWindow: BrowserWindow | null = null;
 let trayController: ThukunaTrayController | null = null;
 let settingsStore: SettingsStore | null = null;
 let platformService: PlatformService | null = null;
+let systemAwarenessService: SystemAwarenessService | null = null;
+let disposePhase15Ipc: (() => void) | null = null;
 let quitting = false;
 
 const sendToRenderer = (channel: string, value?: unknown): void => {
@@ -69,6 +73,12 @@ const showThukuna = (): void => {
         sendToRenderer(IPC_CHANNELS.settingsChanged, settingsStore.getSnapshot());
       }
       sendToRenderer(IPC_CHANNELS.visibilityChanged, true);
+      if (systemAwarenessService !== null) {
+        sendToRenderer(
+          IPC_CHANNELS.systemAwarenessChanged,
+          systemAwarenessService.getSnapshot()
+        );
+      }
     });
   } else {
     petWindow.showInactive();
@@ -128,6 +138,23 @@ const primaryInstance = configureSingleInstance(app, showThukuna);
 if (primaryInstance) void app.whenReady().then(async () => {
   console.info("[THUKUNA startup] Electron app ready.");
   platformService = createPlatformService(app);
+  systemAwarenessService = new SystemAwarenessService(
+    createElectronSystemAwarenessProvider(),
+    {
+      onChanged: (snapshot) =>
+        sendToRenderer(IPC_CHANNELS.systemAwarenessChanged, snapshot),
+      onGeometryInvalidated: () => {
+        if (
+          petWindow === null ||
+          petWindow.isDestroyed() ||
+          platformService === null
+        ) return;
+        const bounds = petWindow.getBounds();
+        platformService.moveWindowTo(petWindow, bounds.x, bounds.y);
+      }
+    }
+  );
+  systemAwarenessService.start();
   installRuntimeDiagnostics(platformService.paths.userData, (code) => app.exit(code));
   app.on("child-process-gone", (_event, details) => {
     const message = `${details.type} process exited: ${details.reason} (${details.exitCode}).`;
@@ -138,7 +165,7 @@ if (primaryInstance) void app.whenReady().then(async () => {
     path.join(platformService.paths.userData, "thukuna-settings.json")
   );
   await settingsStore.load();
-  registerPetWindowIpc(
+  disposePhase15Ipc = registerPetWindowIpc(
     () => petWindow,
     platformService,
     {
@@ -147,6 +174,14 @@ if (primaryInstance) void app.whenReady().then(async () => {
         return settingsStore.getSnapshot();
       },
       update: ({ key, value }) => updateSettings({ [key]: value })
+    },
+    {
+      get: () => {
+        if (systemAwarenessService === null) {
+          throw new Error("System Awareness unavailable.");
+        }
+        return systemAwarenessService.getSnapshot();
+      }
     }
   );
   console.info("[THUKUNA startup] Creating pet window.");
@@ -178,6 +213,9 @@ if (primaryInstance) void app.whenReady().then(async () => {
 if (primaryInstance) {
   app.on("before-quit", () => {
     quitting = true;
+    disposePhase15Ipc?.();
+    disposePhase15Ipc = null;
+    systemAwarenessService?.dispose();
   });
 
   app.on("window-all-closed", () => {

@@ -43,5 +43,7 @@ export const IPC_CHANNELS = {
   settingsChanged: "thukuna:settings-changed",
   visibilityChanged: "thukuna:visibility-changed",
   resetPosition: "thukuna:reset-position",
-  resetPositionRequest: "thukuna:reset-position-request"
+  resetPositionRequest: "thukuna:reset-position-request",
+  systemAwarenessGet: "thukuna:system-awareness-get",
+  systemAwarenessChanged: "thukuna:system-awareness-changed"
 } as const;
