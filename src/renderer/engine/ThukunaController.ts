@@ -87,6 +87,16 @@ import {
   type MovementMemorySnapshot
 } from "./MovementMemory";
 import { planCursorMovement, type ChaseMovementPlan } from "./MovementPlanner";
+import {
+  copySystemAwarenessSnapshot,
+  createUnknownSystemAwarenessSnapshot,
+  type SystemAwarenessSnapshot
+} from "../../shared/systemAwareness";
+import {
+  resolveSystemRuntimeContext,
+  type SystemRuntimeContext,
+  type SystemSafetyBlockReason
+} from "./SystemAwarenessController";
 
 export interface WindowPosition {
   x: number;
@@ -125,6 +135,9 @@ export interface ThukunaSnapshot {
   movementCapabilityPolicy: MovementCapabilityPolicy;
   visible: boolean;
   developmentOverrideActive: boolean;
+  systemAwareness: SystemAwarenessSnapshot;
+  systemRuntimeContext: SystemRuntimeContext;
+  systemSafetyBlockReason: SystemSafetyBlockReason | null;
 }
 
 export interface DevelopmentForceOptions {
@@ -211,6 +224,9 @@ export class ThukunaController implements InteractionBehaviorPort {
   private rareEventDialogueHandler:
     | ((event: RareEventName, bypassCooldown: boolean) => void)
     | null = null;
+  private systemAwareness = createUnknownSystemAwarenessSnapshot();
+  private systemRuntimeContext = resolveSystemRuntimeContext(this.systemAwareness);
+  private systemRuntimePaused = false;
 
   public constructor(
     animation: AnimationController<AnimationName>,
@@ -338,14 +354,15 @@ export class ThukunaController implements InteractionBehaviorPort {
         this.rareEvents.completeEvent(event, this.personality.getSnapshot());
       },
       isAutonomyPaused: () =>
-        !this.developmentPolicyTransition && (this.autonomyPaused || !this.visible),
+        this.systemRuntimePaused ||
+        (!this.developmentPolicyTransition && (this.autonomyPaused || !this.visible)),
       isMouseAwarenessAllowed: () =>
-        this.developmentPolicyTransition
+        !this.systemRuntimePaused && (this.developmentPolicyTransition
           ? this.visible && this.platformCapabilities.supportsCursorScreenPosition
           : this.visible &&
             !this.autonomyPaused &&
             this.powerPolicy.getSnapshot().mouseAwarenessAllowed &&
-            this.movementCapabilityPolicy.cursorScreenPositionAllowed,
+            this.movementCapabilityPolicy.cursorScreenPositionAllowed),
       getPowerPolicy: () => this.powerPolicy.getSnapshot(),
       recordMovement: (action) =>
         this.movementMemory.record(action, performance.now()),
@@ -371,7 +388,76 @@ export class ThukunaController implements InteractionBehaviorPort {
     if (this.platformCapabilities.supportsAbsoluteWindowPosition) {
       void this.movement.syncPosition().then(() => this.emitSnapshot());
     }
-    if (this.visible) this.frameRequestId = requestAnimationFrame(this.tick);
+    if (this.systemRuntimePaused) this.context.animation.pause?.();
+    if (this.visible && !this.systemRuntimePaused) {
+      this.frameRequestId = requestAnimationFrame(this.tick);
+    }
+  }
+
+  public applySystemAwareness(snapshot: SystemAwarenessSnapshot): void {
+    const previousAwareness = this.systemAwareness;
+    const wasPaused = this.systemRuntimePaused;
+    this.systemAwareness = copySystemAwarenessSnapshot(snapshot);
+    this.systemRuntimeContext = resolveSystemRuntimeContext(snapshot);
+    this.systemRuntimePaused = this.systemRuntimeContext.hardPaused;
+    this.powerPolicy.updateSystemAwareness(snapshot);
+    this.cursor.setIntervalMultiplier(
+      this.systemRuntimeContext.cursorIntervalMultiplier
+    );
+    this.applyRareEventPolicy();
+    if (!this.started) return;
+
+    if (this.systemRuntimePaused) {
+      if (this.frameRequestId !== null) {
+        cancelAnimationFrame(this.frameRequestId);
+        this.frameRequestId = null;
+      }
+      this.rebaseTiming();
+      this.locomotion.cancel();
+      this.movement.stop();
+      this.cursor.disable();
+      this.clearInteractionOverride();
+      if (this.stateMachine.getCurrentState() !== "IDLE") {
+        this.stateMachine.transition("IDLE", this.context);
+      }
+      this.context.animation.pause?.();
+      this.rareEvents.suspend();
+      this.emitSnapshot();
+      return;
+    }
+
+    if (wasPaused) {
+      this.rebaseTiming();
+      this.stateMachine.restart(this.context);
+      if (this.canScheduleRareEvents()) {
+        this.rareEvents.resume(this.personality.getSnapshot());
+      }
+      void this.movement.syncPosition().then(() => this.emitSnapshot());
+      if (this.visible && this.frameRequestId === null) {
+        this.frameRequestId = requestAnimationFrame(this.tick);
+      }
+    } else if (
+      snapshot.lastTransition?.kind === "display" ||
+      (snapshot.lastTransition?.kind === "session" &&
+        snapshot.lastTransition.from === "suspended")
+    ) {
+      this.rebaseTiming();
+      void this.movement.syncPosition().then(() => this.emitSnapshot());
+    }
+
+    if (
+      previousAwareness.activityState !== snapshot.activityState ||
+      previousAwareness.powerSource !== snapshot.powerSource
+    ) {
+      this.applyRareEventPolicy();
+    }
+    this.emitSnapshot();
+  }
+
+  public rebaseTiming(): void {
+    this.previousTimestamp = null;
+    this.debugElapsedMs = 0;
+    this.context.animation.rebaseClock?.();
   }
 
   public applySettings(value: ThukunaSettings): void {
@@ -463,6 +549,11 @@ export class ThukunaController implements InteractionBehaviorPort {
       return;
     }
 
+    if (this.systemRuntimePaused) {
+      this.context.animation.pause?.();
+      this.emitSnapshot();
+      return;
+    }
     this.stateMachine.restart(this.context);
     if (this.canScheduleRareEvents()) {
       this.rareEvents.resume(this.personality.getSnapshot());
@@ -540,7 +631,11 @@ export class ThukunaController implements InteractionBehaviorPort {
   }
 
   public beginDrag(): void {
-    if (!this.started || this.stateMachine.getCurrentState() === "DRAGGED") {
+    if (
+      !this.started ||
+      this.systemRuntimePaused ||
+      this.stateMachine.getCurrentState() === "DRAGGED"
+    ) {
       return;
     }
     this.locomotion.cancel();
@@ -572,7 +667,7 @@ export class ThukunaController implements InteractionBehaviorPort {
     durationMs?: number
   ): boolean {
     const currentState = this.stateMachine.getCurrentState();
-    if (!this.started || currentState === "DRAGGED") {
+    if (!this.started || this.systemRuntimePaused || currentState === "DRAGGED") {
       return false;
     }
     if (currentState === "RAGE" && reaction !== "RAGE") {
@@ -606,21 +701,25 @@ export class ThukunaController implements InteractionBehaviorPort {
   }
 
   public onClick(): void {
+    if (this.systemRuntimePaused) return;
     this.personality.onClick();
     this.emitSnapshot();
   }
 
   public onAnnoyedCombo(): void {
+    if (this.systemRuntimePaused) return;
     this.personality.onAnnoyedCombo();
     this.emitSnapshot();
   }
 
   public onAngryCombo(): void {
+    if (this.systemRuntimePaused) return;
     this.personality.onAngryCombo();
     this.emitSnapshot();
   }
 
   public onRage(): void {
+    if (this.systemRuntimePaused) return;
     this.personality.onRage();
     this.emitSnapshot();
   }
@@ -664,6 +763,7 @@ export class ThukunaController implements InteractionBehaviorPort {
     if (
       !this.started ||
       !this.visible ||
+      this.systemRuntimePaused ||
       (!devOverride && this.autonomyPaused) ||
       (!devOverride && !this.powerPolicy.getSnapshot().rareEventsAllowed) ||
       this.interactionOverride ||
@@ -703,6 +803,7 @@ export class ThukunaController implements InteractionBehaviorPort {
     if (
       !this.started ||
       !this.visible ||
+      this.systemRuntimePaused ||
       (!devOverride && this.autonomyPaused) ||
       (!devOverride && !this.powerPolicy.getSnapshot().mouseAwarenessAllowed) ||
       !(devOverride
@@ -751,6 +852,7 @@ export class ThukunaController implements InteractionBehaviorPort {
     if (
       !this.started ||
       !this.visible ||
+      this.systemRuntimePaused ||
       (!devOverride && this.autonomyPaused) ||
       !(devOverride
         ? this.isForcedLocomotionHardAllowed(action)
@@ -809,6 +911,7 @@ export class ThukunaController implements InteractionBehaviorPort {
     if (
       !this.started ||
       !this.visible ||
+      this.systemRuntimePaused ||
       this.stateMachine.getCurrentState() !== "SLEEPING"
     ) {
       return false;
@@ -839,6 +942,7 @@ export class ThukunaController implements InteractionBehaviorPort {
     if (
       !this.started ||
       !this.visible ||
+      this.systemRuntimePaused ||
       this.stateMachine.getCurrentState() === "DRAGGED"
     ) {
       return false;
@@ -931,7 +1035,10 @@ export class ThukunaController implements InteractionBehaviorPort {
       platformCapabilities: { ...this.platformCapabilities },
       movementCapabilityPolicy: { ...this.movementCapabilityPolicy },
       visible: this.visible,
-      developmentOverrideActive: this.developmentOverrideActive
+      developmentOverrideActive: this.developmentOverrideActive,
+      systemAwareness: copySystemAwarenessSnapshot(this.systemAwareness),
+      systemRuntimeContext: { ...this.systemRuntimeContext },
+      systemSafetyBlockReason: this.systemRuntimeContext.blockReason
     };
   }
 
@@ -1031,7 +1138,9 @@ export class ThukunaController implements InteractionBehaviorPort {
       }
     }
 
-    if (this.visible) this.frameRequestId = requestAnimationFrame(this.tick);
+    if (this.visible && !this.systemRuntimePaused) {
+      this.frameRequestId = requestAnimationFrame(this.tick);
+    }
   };
 
   private emitSnapshot(): void {
@@ -1266,6 +1375,7 @@ export class ThukunaController implements InteractionBehaviorPort {
   private canScheduleRareEvents(): boolean {
     return (
       this.visible &&
+      !this.systemRuntimePaused &&
       !this.autonomyPaused &&
       this.powerPolicy.getSnapshot().rareEventsAllowed &&
       this.movementCapabilityPolicy.localRareEventsAllowed

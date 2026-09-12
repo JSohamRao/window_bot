@@ -92,7 +92,31 @@ const baseSnapshot = (): ThukunaSnapshot => ({
     DEFAULT_THUKUNA_SETTINGS
   ),
   visible: true,
-  developmentOverrideActive: false
+  developmentOverrideActive: false,
+  systemAwareness: {
+    sessionState: "active",
+    activityState: "active",
+    powerSource: "ac",
+    idleSeconds: 0,
+    updatedAt: 0,
+    capabilities: {
+      idleAwareness: true,
+      sessionEvents: true,
+      suspendResume: true,
+      powerSource: true,
+      displayEvents: true
+    },
+    lastTransition: null,
+    idleSamplerActive: true,
+    listenerCount: 9
+  },
+  systemRuntimeContext: {
+    hardPaused: false,
+    blockReason: null,
+    cursorIntervalMultiplier: 1,
+    effectivePolicyLabel: "SYSTEM_NORMAL"
+  },
+  systemSafetyBlockReason: null
 });
 
 const setup = (assetValidationError: string | null = null) => {
@@ -197,6 +221,20 @@ test("DEV force bypasses Low Power while preserving hard movement capability", a
   assert.equal(result.accepted, true);
   assert.equal(result.devOverride, true);
   assert.deepEqual(harness.calls, ["locomotion:JUMP"]);
+});
+
+test("system lock and suspend reject developer force but keep diagnostics available", async () => {
+  for (const reason of ["SYSTEM_LOCKED", "SYSTEM_SUSPENDED"] as const) {
+    const harness = setup();
+    harness.setSnapshot({ systemSafetyBlockReason: reason });
+    const domain = await harness.runtime.execute(definition("DOMAIN"));
+    assert.equal(domain.accepted, false);
+    assert.equal(domain.reason, reason);
+    assert.deepEqual(harness.calls, []);
+    const diagnostics = await harness.runtime.execute(definition("DIAGNOSTICS"));
+    assert.equal(diagnostics.accepted, true);
+    assert.deepEqual(harness.calls, ["diagnostics"]);
+  }
 });
 
 test("platform capability rejection is distinct from geometry rejection", async () => {

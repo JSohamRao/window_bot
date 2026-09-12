@@ -149,6 +149,10 @@ export class AnimationController<AnimationName extends string> {
     this.emitSnapshot();
   }
 
+  public rebaseClock(): void {
+    this.lastTimestamp = null;
+  }
+
   public setFrame(frameIndex: number): void {
     const definition = this.getCurrentDefinition();
     if (definition === null || !Number.isInteger(frameIndex) || frameIndex < 0 || frameIndex >= definition.frames.length) {

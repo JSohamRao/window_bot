@@ -133,6 +133,7 @@ export class CursorAwarenessController {
   private isInsideDeadZone = false;
   private sampleSequence = 0;
   private failed = false;
+  private intervalMultiplier = 1;
   private readonly queryCounts = { IDLE: 0, WATCH: 0, CHASE: 0 };
 
   public constructor(
@@ -161,6 +162,18 @@ export class CursorAwarenessController {
 
   public enableChasing(): void {
     this.setMode("CHASE", CURSOR_CONFIG.chaseSampleIntervalMs, true);
+  }
+
+  public setIntervalMultiplier(value: number): void {
+    const next = Number.isFinite(value) ? Math.min(Math.max(value, 1), 4) : 1;
+    if (next === this.intervalMultiplier) return;
+    const ratio = next / this.intervalMultiplier;
+    this.intervalMultiplier = next;
+    if (this.mode !== "OFF") {
+      this.currentIntervalMs *= ratio;
+      this.elapsedSinceQueryMs = Math.min(this.elapsedSinceQueryMs, this.currentIntervalMs);
+    }
+    this.onChange?.();
   }
 
   public disable(): void {
@@ -224,8 +237,8 @@ export class CursorAwarenessController {
   ): void {
     this.generation += 1;
     this.mode = mode;
-    this.currentIntervalMs = intervalMs;
-    this.elapsedSinceQueryMs = sampleImmediately ? intervalMs : 0;
+    this.currentIntervalMs = intervalMs * this.intervalMultiplier;
+    this.elapsedSinceQueryMs = sampleImmediately ? this.currentIntervalMs : 0;
     this.queryInFlight = false;
     this.suggestedDirection = null;
     this.failed = false;
@@ -255,7 +268,7 @@ export class CursorAwarenessController {
             this.random,
             CURSOR_CONFIG.idleSampleMinMs,
             CURSOR_CONFIG.idleSampleMaxMs
-          );
+          ) * this.intervalMultiplier;
         }
       })
       .catch((error: unknown) => {

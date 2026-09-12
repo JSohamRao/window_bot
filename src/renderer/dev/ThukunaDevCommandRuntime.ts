@@ -272,6 +272,15 @@ export class ThukunaDevCommandRuntime implements DevCommandRuntime {
   ): DevCommandExecution | null {
     if (snapshot.state === null) return rejected("NOT_STARTED");
     if (!snapshot.visible) return rejected("WINDOW_HIDDEN");
+    if (
+      snapshot.systemSafetyBlockReason !== null &&
+      command !== "DIAGNOSTICS"
+    ) {
+      return rejected(
+        snapshot.systemSafetyBlockReason,
+        "System hard safety cannot be bypassed by developer commands."
+      );
+    }
     if (snapshot.state === "DRAGGED" && command !== "DIAGNOSTICS") {
       return rejected("DRAG_ACTIVE", "Release the active drag first.");
     }

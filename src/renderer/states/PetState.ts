@@ -42,6 +42,8 @@ export interface PetAnimation {
   setMotionEnabled(enabled: boolean): void;
   setRageActive(active: boolean): void;
   pause?(): void;
+  resume?(): void;
+  rebaseClock?(): void;
 }
 
 export interface PetContext {

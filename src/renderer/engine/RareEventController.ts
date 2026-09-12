@@ -61,7 +61,7 @@ export const calculateRareEventIntervalRange = (
 ): { minMs: number; maxMs: number; chaosModifier: number } => {
   const chaosModifier = finitePersonalityValue(personality.chaos) / 100;
   const multiplier = Number.isFinite(intervalMultiplier)
-    ? clamp(intervalMultiplier, 0.65, 1)
+    ? clamp(intervalMultiplier, 0.65, 4)
     : 1;
   const low = RARE_EVENT_CONFIG.checkInterval.lowChaos;
   const high = RARE_EVENT_CONFIG.checkInterval.highChaos;
@@ -136,7 +136,7 @@ export class RareEventController {
     personality: PersonalitySnapshot
   ): void {
     const intervalMultiplier = Number.isFinite(policy.intervalMultiplier)
-      ? clamp(policy.intervalMultiplier, 0.65, 1)
+      ? clamp(policy.intervalMultiplier, 0.65, 4)
       : 1;
     const occurrenceChanceBoost = Number.isFinite(policy.occurrenceChanceBoost)
       ? clamp(policy.occurrenceChanceBoost, 0, 0.2)

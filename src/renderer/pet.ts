@@ -33,6 +33,10 @@ import {
   sanitizeThukunaSettings,
   type ThukunaSettings as SharedThukunaSettings
 } from "../shared/settings";
+import {
+  SystemAwarenessController,
+  type SystemAwarenessControllerSnapshot
+} from "./engine/SystemAwarenessController";
 
 const requireElement = <ElementType extends Element>(selector: string): ElementType => {
   const element = document.querySelector<ElementType>(selector);
@@ -65,6 +69,7 @@ let dialogueController: DialogueController | null = null;
 let animationController: AnimationController<AnimationName> | null = null;
 let devCommandController: DevCommandController | null = null;
 let devCommandPanel: DevCommandPanel | null = null;
+let systemAwarenessController: SystemAwarenessController | null = null;
 let currentSettings: SharedThukunaSettings = { ...DEFAULT_THUKUNA_SETTINGS };
 let runtimeVisible = true;
 const bridgeUnsubscribers: Array<() => void> = [];
@@ -125,6 +130,7 @@ const finishPointer = (event: PointerEvent, cancelled = false): void => {
 petStage.addEventListener("pointerdown", (event) => {
   petStage.focus({ preventScroll: true });
   if (
+    latestSystemAwarenessSnapshot?.runtime.hardPaused === true ||
     draggingPointerId !== null ||
     !interactionController?.pointerDown(
       event.button,
@@ -177,6 +183,7 @@ petStage.addEventListener("lostpointercapture", (event) =>
 
 let latestAnimationSnapshot: AnimationSnapshot<AnimationName> | null = null;
 let latestThukunaSnapshot: ThukunaSnapshot | null = null;
+let latestSystemAwarenessSnapshot: SystemAwarenessControllerSnapshot | null = null;
 
 const seconds = (milliseconds: number): string =>
   `${(milliseconds / 1000).toFixed(1)}s`;
@@ -238,6 +245,11 @@ const renderDebugOverlay = (): void => {
     `CAP MOVE:${behavior.platformCapabilities.supportsProgrammaticWindowMove ? "Y" : "N"} CURSOR:${behavior.platformCapabilities.supportsCursorScreenPosition ? "Y" : "N"}`,
     `CAP CLIMB:${behavior.platformCapabilities.supportsEdgeClimbing ? "Y" : "N"} PERCH:${behavior.platformCapabilities.supportsPerching ? "Y" : "N"}`,
     `MODE: ${behavior.powerPolicy.mode}  AUTO:${behavior.autonomyPaused ? "PAUSED" : "RUN"}`,
+    `SESSION: ${behavior.systemAwareness.sessionState.toUpperCase()}  USER: ${behavior.systemAwareness.activityState.toUpperCase()}  IDLE:${behavior.systemAwareness.idleSeconds}s`,
+    `POWER: ${behavior.systemAwareness.powerSource.toUpperCase()}  AWARENESS:${behavior.systemRuntimeContext.hardPaused ? "PAUSED" : "RUNNING"}`,
+    `EFFECTIVE POLICY: ${behavior.powerPolicy.mode}+${behavior.systemRuntimeContext.effectivePolicyLabel}`,
+    `SYSTEM LAST: ${behavior.systemAwareness.lastTransition === null ? "--" : `${behavior.systemAwareness.lastTransition.kind}:${behavior.systemAwareness.lastTransition.from}->${behavior.systemAwareness.lastTransition.to}`}`,
+    `IDLE SAMPLER: ${behavior.systemAwareness.idleSamplerActive ? "ACTIVE" : "STOPPED"}  LISTENERS:${behavior.systemAwareness.listenerCount}  HISTORY:${latestSystemAwarenessSnapshot?.transitionHistory.length ?? 0}`,
     `EDGE LEFT:${behavior.nearLeftEdge ? "Y" : "N"} RIGHT:${behavior.nearRightEdge ? "Y" : "N"}`,
     `CURSOR DX:${behavior.cursor.horizontalDeltaPx === null ? "--" : Math.round(behavior.cursor.horizontalDeltaPx)} DY:${behavior.cursor.verticalDeltaPx == null ? "--" : Math.round(behavior.cursor.verticalDeltaPx)}`,
     `CURSOR SAME:${behavior.cursor.sameDisplay ? "Y" : "N"} MODE:${behavior.cursor.mode} PLAN:${behavior.cursorPlan}`,
@@ -395,7 +407,11 @@ const initializeAnimationEngine = async (): Promise<void> => {
   const applySettings = (settings: SharedThukunaSettings): void => {
     currentSettings = sanitizeThukunaSettings(settings);
     document.body.classList.toggle("low-power-mode", currentSettings.lowPowerMode);
-    dialogueController?.setEnabled(runtimeVisible && currentSettings.dialogueEnabled);
+    dialogueController?.setEnabled(
+      runtimeVisible &&
+      currentSettings.dialogueEnabled &&
+      latestSystemAwarenessSnapshot?.runtime.hardPaused !== true
+    );
     thukunaController?.applySettings(currentSettings);
     renderDebugOverlay();
   };
@@ -414,7 +430,11 @@ const initializeAnimationEngine = async (): Promise<void> => {
       document.body.classList.remove("is-dragging");
     }
     thukunaController?.setRuntimeVisible(visible);
-    dialogueController?.setEnabled(visible && currentSettings.dialogueEnabled);
+    dialogueController?.setEnabled(
+      visible &&
+      currentSettings.dialogueEnabled &&
+      latestSystemAwarenessSnapshot?.runtime.hardPaused !== true
+    );
     if (!visible) animationController?.pause();
     renderDebugOverlay();
   };
@@ -426,6 +446,32 @@ const initializeAnimationEngine = async (): Promise<void> => {
     })
   );
   applySettings(currentSettings);
+  systemAwarenessController = new SystemAwarenessController(
+    window.thukunaWindow,
+    (snapshot) => {
+      latestSystemAwarenessSnapshot = snapshot;
+      if (snapshot.runtime.hardPaused) {
+        if (dragFrame !== null) cancelAnimationFrame(dragFrame);
+        if (draggingPointerId !== null || interactionController?.hasPointerSession()) {
+          window.thukunaWindow.endDrag();
+          interactionController?.cancelPointerSession(performance.now());
+        }
+        draggingPointerId = null;
+        pendingDragPoint = null;
+        dragFrame = null;
+        document.body.classList.remove("is-dragging");
+      }
+      thukunaController?.applySystemAwareness(snapshot.awareness);
+      dialogueController?.setEnabled(
+        runtimeVisible &&
+        currentSettings.dialogueEnabled &&
+        !snapshot.runtime.hardPaused
+      );
+      renderDebugOverlay();
+    }
+  );
+  await systemAwarenessController.start();
+  bridgeUnsubscribers.push(() => systemAwarenessController?.dispose());
   bridgeUnsubscribers.push(installDebugControls(
     animationController,
     thukunaController,
@@ -439,6 +485,8 @@ const initializeAnimationEngine = async (): Promise<void> => {
     "beforeunload",
     () => {
       thukunaController?.destroy();
+      systemAwarenessController?.dispose();
+      systemAwarenessController = null;
       thukunaController?.setMouseDialogueHandler(null);
       thukunaController?.setRareEventDialogueHandler(null);
       interactionController?.hideDialogue();
