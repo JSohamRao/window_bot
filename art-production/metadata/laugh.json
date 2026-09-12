@@ -1,0 +1,1 @@
+{"animation":"laugh","loop":false,"minimumFrameCount":3,"suggestedDurationMs":120,"suggestedAnchor":"GROUND","frames":[{"file":"laugh_01.png","role":"laugh start"},{"file":"laugh_02.png","role":"wider open-mouth laugh"},{"file":"laugh_03.png","role":"peak full-body laugh"}],"finalTuning":"PHASE_11_5"}

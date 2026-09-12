@@ -1,0 +1,1 @@
+{"animation":"watch","loop":false,"minimumFrameCount":4,"suggestedDurationMs":180,"suggestedAnchor":"GROUND","frames":[{"file":"watch_01.png","role":"canonical neutral"},{"file":"watch_02.png","role":"viewer-right eye shift"},{"file":"watch_03.png","role":"small viewer-right head turn"},{"file":"watch_04.png","role":"intense viewer-right stare"}],"finalTuning":"PHASE_11_5"}

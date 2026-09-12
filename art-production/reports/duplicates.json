@@ -1,0 +1,29 @@
+{
+  "exactDuplicates": [],
+  "suspiciousNearDuplicates": [
+    {
+      "animation": "idle",
+      "a": "idle_01.png",
+      "b": "blink_01.png",
+      "dHashDistance": 4
+    },
+    {
+      "animation": "idle",
+      "a": "idle_01.png",
+      "b": "blink_02.png",
+      "dHashDistance": 4
+    },
+    {
+      "animation": "idle",
+      "a": "blink_01.png",
+      "b": "blink_02.png",
+      "dHashDistance": 2
+    },
+    {
+      "animation": "watch",
+      "a": "watch_01.png",
+      "b": "watch_02.png",
+      "dHashDistance": 4
+    }
+  ]
+}

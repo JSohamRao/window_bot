@@ -1,0 +1,1 @@
+{"animation":"idle","loop":true,"suggestedDurationMs":420,"suggestedAnchor":"GROUND","frames":[{"file":"idle_01.png","role":"neutral canonical"},{"file":"idle_02.png","role":"subtle breath"},{"file":"blink_01.png","role":"eyes closing"},{"file":"blink_02.png","role":"eyes reopening"}],"finalTuning":"PHASE_11_5"}

@@ -1,0 +1,314 @@
+{
+  "source": {
+    "path": "phase115-final-soak.csv",
+    "file_size_bytes": 15422
+  },
+  "quality": {
+    "header": [
+      "Time",
+      "PID",
+      "Process",
+      "CPUSeconds",
+      "WorkingSetMB",
+      "PrivateMemoryMB"
+    ],
+    "header_correct": true,
+    "malformed_row_count": 0,
+    "malformed_rows": [],
+    "missing_timestamp_count": 0,
+    "duplicate_row_count": 0,
+    "duplicate_time_pid_count": 0,
+    "valid_row_count": 240,
+    "sample_round_count": 60,
+    "expected_sample_round_count": 60,
+    "empty_sample_round_count": 0,
+    "first_timestamp": "2026-09-12T16:26:24.000+05:30",
+    "last_timestamp": "2026-09-12T16:55:55.019+05:30",
+    "elapsed_seconds": 1771.019,
+    "sampling_interval_seconds": {
+      "expected_from_script": 30.0,
+      "average": 30.017271186440677,
+      "median": 30.016,
+      "min": 30.003,
+      "max": 30.044
+    },
+    "long_gap_threshold_seconds": 45.024,
+    "long_gap_count": 0,
+    "long_gaps_seconds": [],
+    "rounds_with_duplicate_pid": 0
+  },
+  "topology": {
+    "unique_pids": [
+      18216,
+      18664,
+      33224,
+      33380
+    ],
+    "process_count_min": 4,
+    "process_count_max": 4,
+    "process_count_values": [
+      4
+    ],
+    "same_pid_set_all_rounds": true,
+    "births_after_first_sample": [],
+    "deaths_before_last_sample": [],
+    "negative_cpu_delta_count": 0
+  },
+  "per_pid": {
+    "18216": {
+      "process": "electron",
+      "samples": 60,
+      "first_timestamp": "2026-09-12T16:26:24.000+05:30",
+      "last_timestamp": "2026-09-12T16:55:55.019+05:30",
+      "elapsed_seconds": 1771.019,
+      "cpu_initial_seconds": 0.03,
+      "cpu_final_seconds": 0.06,
+      "cpu_consumed_seconds": 0.03,
+      "cpu_avg_single_core_percent": 0.0016939400424275516,
+      "cpu_median_interval_single_core_percent": 0.0,
+      "cpu_peak_single_core_percent": 0.06662447116826012,
+      "cpu_active_interval_count": 2,
+      "cpu_first_ten_interval_avg_percent": 0.0,
+      "cpu_last_ten_interval_avg_percent": 0.0,
+      "cpu_peak_interval": {
+        "start": "2026-09-12T16:35:54.367+05:30",
+        "end": "2026-09-12T16:36:24.386+05:30",
+        "elapsed_seconds": 30.019,
+        "cpu_delta_seconds": 0.020000000000000004,
+        "single_core_utilization_percent": 0.06662447116826012
+      },
+      "negative_cpu_delta_count": 0,
+      "working_set_mb": {
+        "initial": 45.08,
+        "min": 45.0,
+        "max": 45.17,
+        "median": 45.1,
+        "final": 45.14,
+        "change": 0.060000000000002274,
+        "percent_change": 0.13309671694765368,
+        "positive_steps": 6,
+        "negative_steps": 7,
+        "flat_steps": 46
+      },
+      "private_memory_mb": {
+        "initial": 11.5,
+        "min": 11.27,
+        "max": 11.5,
+        "median": 11.28,
+        "final": 11.3,
+        "change": -0.1999999999999993,
+        "percent_change": -1.7391304347826024,
+        "positive_steps": 6,
+        "negative_steps": 6,
+        "flat_steps": 47
+      }
+    },
+    "18664": {
+      "process": "electron",
+      "samples": 60,
+      "first_timestamp": "2026-09-12T16:26:24.021+05:30",
+      "last_timestamp": "2026-09-12T16:55:55.019+05:30",
+      "elapsed_seconds": 1770.998,
+      "cpu_initial_seconds": 1.69,
+      "cpu_final_seconds": 41.16,
+      "cpu_consumed_seconds": 39.47,
+      "cpu_avg_single_core_percent": 2.2286868759874374,
+      "cpu_median_interval_single_core_percent": 0.0,
+      "cpu_peak_single_core_percent": 16.697217130478254,
+      "cpu_active_interval_count": 15,
+      "cpu_first_ten_interval_avg_percent": 11.191918400209998,
+      "cpu_last_ten_interval_avg_percent": 0.0,
+      "cpu_peak_interval": {
+        "start": "2026-09-12T16:27:24.058+05:30",
+        "end": "2026-09-12T16:27:54.063+05:30",
+        "elapsed_seconds": 30.005,
+        "cpu_delta_seconds": 5.01,
+        "single_core_utilization_percent": 16.697217130478254
+      },
+      "negative_cpu_delta_count": 0,
+      "working_set_mb": {
+        "initial": 507.73,
+        "min": 107.35,
+        "max": 507.73,
+        "median": 107.9,
+        "final": 107.35,
+        "change": -400.38,
+        "percent_change": -78.85687274732634,
+        "positive_steps": 7,
+        "negative_steps": 16,
+        "flat_steps": 36
+      },
+      "private_memory_mb": {
+        "initial": 206.12,
+        "min": 50.74,
+        "max": 206.12,
+        "median": 50.74,
+        "final": 50.74,
+        "change": -155.38,
+        "percent_change": -75.38327188045798,
+        "positive_steps": 7,
+        "negative_steps": 10,
+        "flat_steps": 42
+      }
+    },
+    "33224": {
+      "process": "electron",
+      "samples": 60,
+      "first_timestamp": "2026-09-12T16:26:24.022+05:30",
+      "last_timestamp": "2026-09-12T16:55:55.019+05:30",
+      "elapsed_seconds": 1770.997,
+      "cpu_initial_seconds": 0.64,
+      "cpu_final_seconds": 34.7,
+      "cpu_consumed_seconds": 34.06,
+      "cpu_avg_single_core_percent": 1.923210485393256,
+      "cpu_median_interval_single_core_percent": 0.0,
+      "cpu_peak_single_core_percent": 15.727042516326806,
+      "cpu_active_interval_count": 14,
+      "cpu_first_ten_interval_avg_percent": 10.308628818415693,
+      "cpu_last_ten_interval_avg_percent": 0.0,
+      "cpu_peak_interval": {
+        "start": "2026-09-12T16:26:54.047+05:30",
+        "end": "2026-09-12T16:27:24.059+05:30",
+        "elapsed_seconds": 30.012,
+        "cpu_delta_seconds": 4.720000000000001,
+        "single_core_utilization_percent": 15.727042516326806
+      },
+      "negative_cpu_delta_count": 0,
+      "working_set_mb": {
+        "initial": 122.25,
+        "min": 122.25,
+        "max": 255.96,
+        "median": 153.76,
+        "final": 153.36,
+        "change": 31.110000000000014,
+        "percent_change": 25.447852760736208,
+        "positive_steps": 7,
+        "negative_steps": 21,
+        "flat_steps": 31
+      },
+      "private_memory_mb": {
+        "initial": 99.59,
+        "min": 99.59,
+        "max": 225.87,
+        "median": 128.91,
+        "final": 128.91,
+        "change": 29.319999999999993,
+        "percent_change": 29.440706898282954,
+        "positive_steps": 7,
+        "negative_steps": 13,
+        "flat_steps": 39
+      }
+    },
+    "33380": {
+      "process": "electron",
+      "samples": 60,
+      "first_timestamp": "2026-09-12T16:26:24.022+05:30",
+      "last_timestamp": "2026-09-12T16:55:55.019+05:30",
+      "elapsed_seconds": 1770.997,
+      "cpu_initial_seconds": 1.7,
+      "cpu_final_seconds": 12.98,
+      "cpu_consumed_seconds": 11.280000000000001,
+      "cpu_avg_single_core_percent": 0.6369293680339381,
+      "cpu_median_interval_single_core_percent": 0.1665223472990099,
+      "cpu_peak_single_core_percent": 5.431341841324847,
+      "cpu_active_interval_count": 48,
+      "cpu_first_ten_interval_avg_percent": 3.0152688145562516,
+      "cpu_last_ten_interval_avg_percent": 0.13327203510938207,
+      "cpu_peak_interval": {
+        "start": "2026-09-12T16:29:54.127+05:30",
+        "end": "2026-09-12T16:30:24.138+05:30",
+        "elapsed_seconds": 30.011,
+        "cpu_delta_seconds": 1.63,
+        "single_core_utilization_percent": 5.431341841324847
+      },
+      "negative_cpu_delta_count": 0,
+      "working_set_mb": {
+        "initial": 95.85,
+        "min": 95.85,
+        "max": 110.22,
+        "median": 109.81,
+        "final": 109.89,
+        "change": 14.040000000000006,
+        "percent_change": 14.64788732394367,
+        "positive_steps": 19,
+        "negative_steps": 12,
+        "flat_steps": 28
+      },
+      "private_memory_mb": {
+        "initial": 69.89,
+        "min": 67.89,
+        "max": 75.47,
+        "median": 73.5,
+        "final": 73.54,
+        "change": 3.6500000000000057,
+        "percent_change": 5.222492488195744,
+        "positive_steps": 17,
+        "negative_steps": 12,
+        "flat_steps": 30
+      }
+    }
+  },
+  "totals": {
+    "working_set_mb": {
+      "initial": 770.91,
+      "min": 415.74,
+      "max": 770.91,
+      "median": 417.11,
+      "final": 415.74,
+      "change": -355.16999999999996,
+      "percent_change": -46.071525859049686,
+      "positive_steps": 12,
+      "negative_steps": 29,
+      "flat_steps": 18
+    },
+    "private_memory_mb": {
+      "initial": 387.1,
+      "min": 264.41,
+      "max": 387.1,
+      "median": 264.48,
+      "final": 264.49,
+      "change": -122.61000000000001,
+      "percent_change": -31.67398605011625,
+      "positive_steps": 13,
+      "negative_steps": 19,
+      "flat_steps": 27
+    },
+    "working_set_last_20_samples": {
+      "samples": 20,
+      "initial": 416.18,
+      "min": 415.74,
+      "max": 416.18,
+      "median": 415.95,
+      "final": 415.74,
+      "change": -0.4399999999999977,
+      "linear_slope_per_minute": -0.013165354911537436
+    },
+    "private_memory_last_20_samples": {
+      "samples": 20,
+      "initial": 264.45,
+      "min": 264.41,
+      "max": 264.61,
+      "median": 264.45,
+      "final": 264.49,
+      "change": 0.040000000000020464,
+      "linear_slope_per_minute": 0.015930912006678472
+    },
+    "working_set_linear_slope_mb_per_minute": -4.6673851786650085,
+    "private_memory_linear_slope_mb_per_minute": -2.7665751276349395,
+    "cpu_initial_seconds": 4.06,
+    "cpu_final_seconds": 88.9,
+    "cpu_consumed_seconds": 84.84,
+    "cpu_avg_single_core_percent": 4.790462439985116,
+    "cpu_peak_single_core_percent": 34.02426019728072,
+    "cpu_median_interval_single_core_percent": 0.1665611779206408,
+    "cpu_first_ten_interval_avg_percent": 24.51512901756893,
+    "cpu_last_ten_interval_avg_percent": 0.13325972048942025,
+    "cpu_peak_interval": {
+      "start": "2026-09-12T16:27:24.055+05:30",
+      "end": "2026-09-12T16:27:54.063+05:30",
+      "elapsed_seconds": 30.008,
+      "cpu_delta_seconds": 10.209999999999997,
+      "single_core_utilization_percent": 34.02426019728072
+    }
+  }
+}

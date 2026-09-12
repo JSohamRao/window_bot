@@ -1,0 +1,308 @@
+{
+  "source": {
+    "path": "phase115-codex-monitor-soak.csv",
+    "file_size_bytes": 10532
+  },
+  "quality": {
+    "header": [
+      "Time",
+      "PID",
+      "CPUSeconds",
+      "WorkingSetMB",
+      "PrivateMemoryMB",
+      "ProcessCount",
+      "SessionId",
+      "StartTime",
+      "InitialPID",
+      "PathMatch",
+      "AccessStatus"
+    ],
+    "header_correct": true,
+    "valid_row_count": 120,
+    "malformed_row_count": 0,
+    "malformed_rows": [],
+    "exact_duplicate_row_count": 0,
+    "sample_round_count": 30,
+    "first_timestamp": "2026-09-12T17:57:42.227+05:30",
+    "last_timestamp": "2026-09-12T18:12:12.778+05:30",
+    "elapsed_seconds": 870.551,
+    "interval_seconds": {
+      "average": 30.019,
+      "median": 30.016,
+      "min": 30.009,
+      "max": 30.063,
+      "long_gap_count": 0
+    },
+    "access_status_counts": {
+      "FULL": 60,
+      "PARTIAL": 60
+    },
+    "rows_with_cpu": 60,
+    "rows_without_cpu": 60
+  },
+  "topology": {
+    "unique_pids": [
+      6872,
+      13292,
+      27244,
+      36736
+    ],
+    "process_count_min": 4,
+    "process_count_max": 4,
+    "same_pid_set_all_rounds": true,
+    "births_after_first_sample": [],
+    "deaths_before_last_sample": [],
+    "session_ids": [
+      3
+    ]
+  },
+  "per_pid": {
+    "6872": {
+      "samples": 30,
+      "access_statuses": [
+        "FULL"
+      ],
+      "path_match_values": [
+        "YES"
+      ],
+      "initial_pid_values": [
+        "YES"
+      ],
+      "start_time_values": [
+        "2026-09-12T17:17:40.825+05:30"
+      ],
+      "working_set_mb": {
+        "initial": 45.85,
+        "min": 45.71,
+        "max": 45.85,
+        "median": 45.72,
+        "final": 45.77,
+        "change": -0.0799999999999983,
+        "percent_change": -0.1744820065430715,
+        "positive_steps": 4,
+        "negative_steps": 4,
+        "flat_steps": 21,
+        "linear_slope_per_minute": -0.001530176346129265
+      },
+      "private_memory_mb": {
+        "initial": 11.88,
+        "min": 11.53,
+        "max": 11.88,
+        "median": 11.54,
+        "final": 11.7,
+        "change": -0.1800000000000015,
+        "percent_change": -1.5151515151515276,
+        "positive_steps": 4,
+        "negative_steps": 4,
+        "flat_steps": 21,
+        "linear_slope_per_minute": -0.003785524938138928
+      },
+      "cpu": {
+        "initial_seconds": 0.4062,
+        "final_seconds": 0.5,
+        "consumed_seconds": 0.0938,
+        "average_single_core_percent": 0.010774785164797926,
+        "peak_single_core_percent": 0.05229846768820784,
+        "negative_delta_count": 0
+      }
+    },
+    "13292": {
+      "samples": 30,
+      "access_statuses": [
+        "FULL"
+      ],
+      "path_match_values": [
+        "YES"
+      ],
+      "initial_pid_values": [
+        "YES"
+      ],
+      "start_time_values": [
+        "2026-09-12T17:17:40.723+05:30"
+      ],
+      "working_set_mb": {
+        "initial": 101.04,
+        "min": 100.77,
+        "max": 102.73,
+        "median": 102.12,
+        "final": 102.34,
+        "change": 1.2999999999999972,
+        "percent_change": 1.2866191607284214,
+        "positive_steps": 22,
+        "negative_steps": 5,
+        "flat_steps": 2,
+        "linear_slope_per_minute": 0.12671633120151107
+      },
+      "private_memory_mb": {
+        "initial": 69.88,
+        "min": 69.21,
+        "max": 71.32,
+        "median": 70.705,
+        "final": 70.64,
+        "change": 0.7600000000000051,
+        "percent_change": 1.0875787063537568,
+        "positive_steps": 15,
+        "negative_steps": 7,
+        "flat_steps": 7,
+        "linear_slope_per_minute": 0.1346437740191458
+      },
+      "cpu": {
+        "initial_seconds": 4.1406,
+        "final_seconds": 6.875,
+        "consumed_seconds": 2.7344,
+        "average_single_core_percent": 0.3140999206249835,
+        "peak_single_core_percent": 1.665778251599147,
+        "negative_delta_count": 0
+      }
+    },
+    "27244": {
+      "samples": 30,
+      "access_statuses": [
+        "PARTIAL"
+      ],
+      "path_match_values": [
+        "NO"
+      ],
+      "initial_pid_values": [
+        "YES"
+      ],
+      "start_time_values": [
+        ""
+      ],
+      "working_set_mb": {
+        "initial": 134.29,
+        "min": 119.4,
+        "max": 154.05,
+        "median": 133.065,
+        "final": 154.05,
+        "change": 19.76000000000002,
+        "percent_change": 14.714424007744448,
+        "positive_steps": 17,
+        "negative_steps": 12,
+        "flat_steps": 0,
+        "linear_slope_per_minute": 0.0950310447015666
+      },
+      "private_memory_mb": {
+        "initial": 111.1,
+        "min": 95.56,
+        "max": 131.12,
+        "median": 109.4,
+        "final": 131.12,
+        "change": 20.02000000000001,
+        "percent_change": 18.01980198019803,
+        "positive_steps": 17,
+        "negative_steps": 12,
+        "flat_steps": 0,
+        "linear_slope_per_minute": 0.08706927838367316
+      },
+      "cpu": null
+    },
+    "36736": {
+      "samples": 30,
+      "access_statuses": [
+        "PARTIAL"
+      ],
+      "path_match_values": [
+        "NO"
+      ],
+      "initial_pid_values": [
+        "YES"
+      ],
+      "start_time_values": [
+        ""
+      ],
+      "working_set_mb": {
+        "initial": 113.04,
+        "min": 104.7,
+        "max": 128.55,
+        "median": 113.53,
+        "final": 114.41,
+        "change": 1.3699999999999903,
+        "percent_change": 1.2119603680113147,
+        "positive_steps": 16,
+        "negative_steps": 13,
+        "flat_steps": 0,
+        "linear_slope_per_minute": 0.2719034872546454
+      },
+      "private_memory_mb": {
+        "initial": 56.65,
+        "min": 47.97,
+        "max": 71.98,
+        "median": 57.235,
+        "final": 58.08,
+        "change": 1.4299999999999997,
+        "percent_change": 2.5242718446601935,
+        "positive_steps": 16,
+        "negative_steps": 13,
+        "flat_steps": 0,
+        "linear_slope_per_minute": 0.2552780648639273
+      },
+      "cpu": null
+    }
+  },
+  "totals": {
+    "working_set_mb": {
+      "initial": 394.22,
+      "min": 379.76,
+      "max": 416.57,
+      "median": 394.40500000000003,
+      "final": 416.57,
+      "change": 22.349999999999966,
+      "percent_change": 5.669423164730344,
+      "positive_steps": 16,
+      "negative_steps": 13,
+      "flat_steps": 0,
+      "linear_slope_per_minute": 0.4921206868115934
+    },
+    "private_memory_mb": {
+      "initial": 249.51,
+      "min": 233.84,
+      "max": 271.54,
+      "median": 249.33999999999997,
+      "final": 271.54,
+      "change": 22.03000000000003,
+      "percent_change": 8.829305438659784,
+      "positive_steps": 16,
+      "negative_steps": 13,
+      "flat_steps": 0,
+      "linear_slope_per_minute": 0.4732055923286076
+    },
+    "working_set_last_ten": {
+      "initial": 409.93,
+      "min": 384.02,
+      "max": 416.57,
+      "median": 397.265,
+      "final": 416.57,
+      "change": 6.639999999999986,
+      "percent_change": 1.6197887444197756,
+      "positive_steps": 5,
+      "negative_steps": 4,
+      "flat_steps": 0,
+      "linear_slope_per_minute": 1.1149400054373368
+    },
+    "private_memory_last_ten": {
+      "initial": 264.59,
+      "min": 237.82,
+      "max": 271.54,
+      "median": 251.54,
+      "final": 271.54,
+      "change": 6.9500000000000455,
+      "percent_change": 2.626705468838598,
+      "positive_steps": 5,
+      "negative_steps": 4,
+      "flat_steps": 0,
+      "linear_slope_per_minute": 1.1431681328451206
+    },
+    "fully_accessible_cpu_pids": [
+      6872,
+      13292
+    ],
+    "cpu_coverage_pid_count": 2,
+    "cpu_total_pid_count": 4,
+    "accessible_cpu_initial_seconds": 4.5468,
+    "accessible_cpu_final_seconds": 7.375,
+    "accessible_cpu_consumed_seconds": 2.8282,
+    "accessible_cpu_average_single_core_percent": 0.3248747057897814,
+    "accessible_cpu_peak_single_core_percent": 1.665778251599147
+  }
+}

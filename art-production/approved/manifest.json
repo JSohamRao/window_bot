@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "phase": "11.5",
+  "minimumTotalFrames": 116,
+  "integrationStatus": "COMPLETE",
+  "productionAssetRoot": "assets/thukuna/animations",
+  "runtimeManifest": "src/renderer/animations/thukunaAnimations.ts",
+  "families": [
+    {
+      "animation": "idle",
+      "minimumFrameCount": 4,
+      "frameCount": 4,
+      "frames": ["thukuna/idle/idle_01.png", "thukuna/idle/idle_02.png", "thukuna/idle/blink_01.png", "thukuna/idle/blink_02.png"],
+      "loop": true,
+      "suggestedDurationMs": 420,
+      "suggestedAnchor": "GROUND",
+      "notes": "Subtle breathing and blink loop; idle_01 is the unchanged canonical base.",
+      "effectsPresent": false
+    },
+    {
+      "animation": "crawl", "minimumFrameCount": 8, "frameCount": 8,
+      "frames": ["thukuna/crawl/crawl_01.png", "thukuna/crawl/crawl_02.png", "thukuna/crawl/crawl_03.png", "thukuna/crawl/crawl_04.png", "thukuna/crawl/crawl_05.png", "thukuna/crawl/crawl_06.png", "thukuna/crawl/crawl_07.png", "thukuna/crawl/crawl_08.png"],
+      "loop": true, "suggestedDurationMs": 100, "suggestedAnchor": "GROUND", "notes": "Alternating eight-pose crawl gait.", "effectsPresent": false
+    },
+    {
+      "animation": "sprint", "minimumFrameCount": 6, "frameCount": 6,
+      "frames": ["thukuna/sprint/sprint_01.png", "thukuna/sprint/sprint_02.png", "thukuna/sprint/sprint_03.png", "thukuna/sprint/sprint_04.png", "thukuna/sprint/sprint_05.png", "thukuna/sprint/sprint_06.png"],
+      "loop": true, "suggestedDurationMs": 75, "suggestedAnchor": "GROUND", "notes": "Dedicated high-energy sprint cycle.", "effectsPresent": false
+    },
+    {
+      "animation": "jump", "minimumFrameCount": 10, "frameCount": 10,
+      "frames": ["thukuna/jump/jump_01.png", "thukuna/jump/jump_02.png", "thukuna/jump/jump_03.png", "thukuna/jump/jump_04.png", "thukuna/jump/jump_05.png", "thukuna/jump/jump_06.png", "thukuna/jump/jump_07.png", "thukuna/jump/jump_08.png", "thukuna/jump/jump_09.png", "thukuna/jump/jump_10.png"],
+      "loop": false, "suggestedDurationMs": 90, "suggestedAnchor": "AIR", "notes": "Anticipation through recovery; artwork encodes pose only.", "effectsPresent": false
+    },
+    {
+      "animation": "hop", "minimumFrameCount": 10, "frameCount": 10,
+      "frames": ["thukuna/hop/hop_01.png", "thukuna/hop/hop_02.png", "thukuna/hop/hop_03.png", "thukuna/hop/hop_04.png", "thukuna/hop/hop_05.png", "thukuna/hop/hop_06.png", "thukuna/hop/hop_07.png", "thukuna/hop/hop_08.png", "thukuna/hop/hop_09.png", "thukuna/hop/hop_10.png"],
+      "loop": false, "suggestedDurationMs": 70, "suggestedAnchor": "AIR", "notes": "Low, light, playful hop distinct from jump.", "effectsPresent": false
+    },
+    {
+      "animation": "fall", "minimumFrameCount": 6, "frameCount": 6,
+      "frames": ["thukuna/fall/fall_01.png", "thukuna/fall/fall_02.png", "thukuna/fall/fall_03.png", "thukuna/fall/fall_04.png", "thukuna/fall/fall_05.png", "thukuna/fall/fall_06.png"],
+      "loop": false, "suggestedDurationMs": 90, "suggestedAnchor": "AIR", "notes": "Physical fall and landing sequence.", "effectsPresent": false
+    },
+    {
+      "animation": "climb", "minimumFrameCount": 10, "frameCount": 10,
+      "frames": ["thukuna/climb/climb_01.png", "thukuna/climb/climb_02.png", "thukuna/climb/climb_03.png", "thukuna/climb/climb_04.png", "thukuna/climb/climb_05.png", "thukuna/climb/climb_06.png", "thukuna/climb/climb_07.png", "thukuna/climb/climb_08.png", "thukuna/climb/climb_09.png", "thukuna/climb/climb_10.png"],
+      "loop": false, "suggestedDurationMs": 110, "suggestedAnchor": "CLIMB_LEFT", "alternateSuggestedAnchor": "CLIMB_RIGHT", "notes": "Invisible-edge climb suitable for mirroring.", "effectsPresent": false
+    },
+    {
+      "animation": "perch", "minimumFrameCount": 6, "frameCount": 6,
+      "frames": ["thukuna/perch/perch_01.png", "thukuna/perch/perch_02.png", "thukuna/perch/perch_03.png", "thukuna/perch/perch_04.png", "thukuna/perch/perch_05.png", "thukuna/perch/perch_06.png"],
+      "loop": false, "suggestedDurationMs": 130, "suggestedAnchor": "PERCH", "notes": "Approach, sit, settle, idle, and exit on an invisible edge.", "effectsPresent": false
+    },
+    {
+      "animation": "sleep", "minimumFrameCount": 8, "frameCount": 8,
+      "frames": ["thukuna/sleep/sleep_01.png", "thukuna/sleep/sleep_02.png", "thukuna/sleep/sleep_03.png", "thukuna/sleep/sleep_04.png", "thukuna/sleep/sleep_05.png", "thukuna/sleep/sleep_06.png", "thukuna/sleep/sleep_07.png", "thukuna/sleep/sleep_08.png"],
+      "loop": false, "suggestedDurationMs": 240, "suggestedAnchor": "GROUND", "notes": "Continuous sleep and wake transition.", "effectsPresent": false
+    },
+    {
+      "animation": "watch", "minimumFrameCount": 4, "frameCount": 4,
+      "frames": ["thukuna/watch/watch_01.png", "thukuna/watch/watch_02.png", "thukuna/watch/watch_03.png", "thukuna/watch/watch_04.png"],
+      "loop": false, "suggestedDurationMs": 180, "suggestedAnchor": "GROUND", "notes": "Subtle eye and head tracking progression.", "effectsPresent": false
+    },
+    {
+      "animation": "laugh", "minimumFrameCount": 3, "frameCount": 3,
+      "frames": ["thukuna/laugh/laugh_01.png", "thukuna/laugh/laugh_02.png", "thukuna/laugh/laugh_03.png"],
+      "loop": false, "suggestedDurationMs": 120, "suggestedAnchor": "GROUND", "notes": "Laugh start through peak.", "effectsPresent": false
+    },
+    {
+      "animation": "angry", "minimumFrameCount": 6, "frameCount": 6,
+      "frames": ["thukuna/angry/angry_01.png", "thukuna/angry/angry_02.png", "thukuna/angry/angry_03.png", "thukuna/angry/angry_04.png", "thukuna/angry/angry_05.png", "thukuna/angry/angry_06.png"],
+      "loop": false, "suggestedDurationMs": 130, "suggestedAnchor": "GROUND", "notes": "Anger escalation and settle.", "effectsPresent": false
+    },
+    {
+      "animation": "rage", "minimumFrameCount": 9, "frameCount": 9,
+      "frames": ["thukuna/rage/rage_01.png", "thukuna/rage/rage_02.png", "thukuna/rage/rage_03.png", "thukuna/rage/rage_04.png", "thukuna/rage/rage_05.png", "thukuna/rage/rage_06.png", "thukuna/rage/rage_07.png", "thukuna/rage/rage_08.png", "thukuna/rage/rage_09.png"],
+      "loop": false, "suggestedDurationMs": 95, "suggestedAnchor": "GROUND", "notes": "Rage escalation, two-frame shake, exit, recovery.", "effectsPresent": false
+    },
+    {
+      "animation": "fall_over", "minimumFrameCount": 6, "frameCount": 6,
+      "frames": ["thukuna/fall_over/fall_over_01.png", "thukuna/fall_over/fall_over_02.png", "thukuna/fall_over/fall_over_03.png", "thukuna/fall_over/fall_over_04.png", "thukuna/fall_over/fall_over_05.png", "thukuna/fall_over/fall_over_06.png"],
+      "loop": false, "suggestedDurationMs": 120, "suggestedAnchor": "CENTER", "notes": "Comedic loss of balance, tumble, impact, and recovery.", "effectsPresent": false
+    },
+    {
+      "animation": "domain", "minimumFrameCount": 20, "frameCount": 20,
+      "frames": ["thukuna/domain/domain_01.png", "thukuna/domain/domain_02.png", "thukuna/domain/domain_03.png", "thukuna/domain/domain_04.png", "thukuna/domain/domain_05.png", "thukuna/domain/domain_06.png", "thukuna/domain/domain_07.png", "thukuna/domain/domain_08.png", "thukuna/domain/domain_09.png", "thukuna/domain/domain_10.png", "thukuna/domain/domain_11.png", "thukuna/domain/domain_12.png", "thukuna/domain/domain_13.png", "thukuna/domain/domain_14.png", "thukuna/domain/domain_15.png", "thukuna/domain/domain_16.png", "thukuna/domain/domain_17.png", "thukuna/domain/domain_18.png", "thukuna/domain/domain_19.png", "thukuna/domain/domain_20.png"],
+      "loop": false, "suggestedDurationMs": 170, "suggestedAnchor": "CENTER", "notes": "Freeze, charge, expansion, peak, collapse, and recovery; final timing deferred to Phase 11.5.", "effectsPresent": true
+    }
+  ]
+}

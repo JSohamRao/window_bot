@@ -1,0 +1,70 @@
+{
+  "name": "thukuna-desktop-pet",
+  "version": "0.1.0",
+  "description": "THUKUNA, a chaotic desktop companion for Windows.",
+  "author": "THUKUNA Project",
+  "copyright": "Copyright © 2026 THUKUNA Project",
+  "main": "dist/main/main.js",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.main.json && tsc -p tsconfig.renderer.json --noEmit && node scripts/build-bundles.mjs && node scripts/copy-static.mjs",
+    "build:production": "node scripts/clean-dist.mjs && tsc -p tsconfig.main.json --sourceMap false && tsc -p tsconfig.renderer.json --noEmit && node scripts/build-bundles.mjs --production && node scripts/copy-static.mjs",
+    "test": "tsc -p tsconfig.tests.json --noEmit && node scripts/run-tests.mjs",
+    "start": "npm run build && electron .",
+    "dev": "npm run start",
+    "package:win": "node scripts/clean-release.mjs && npm run build:production && electron-builder --win",
+    "audit:release": "node scripts/audit-release.mjs",
+    "validate:art": "node art-production/scripts/run_art_tool.mjs validate",
+    "validate:art:batch": "node art-production/scripts/run_art_tool.mjs validate",
+    "analyze:art": "node art-production/scripts/run_art_tool.mjs analyze",
+    "contact-sheet:art": "node art-production/scripts/run_art_tool.mjs contact-sheet",
+    "duplicate-check:art": "node art-production/scripts/run_art_tool.mjs duplicates"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "electron": "^44.2.0",
+    "electron-builder": "^26.0.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.9.0"
+  },
+  "build": {
+    "appId": "com.thukuna.desktoppet",
+    "productName": "THUKUNA",
+    "asar": true,
+    "files": [
+      "dist/main/**/*",
+      "dist/renderer/**/*",
+      "dist/shared/**/*",
+      "dist/assets/**/*",
+      "!dist/tests/**/*",
+      "!dist/**/*.map"
+    ],
+    "directories": {
+      "output": "release",
+      "buildResources": "assets/icons"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icons/thukuna.ico",
+      "executableName": "THUKUNA",
+      "artifactName": "THUKUNA-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "THUKUNA",
+      "runAfterFinish": true,
+      "installerIcon": "assets/icons/thukuna.ico",
+      "uninstallerIcon": "assets/icons/thukuna.ico",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'"
+    />
+    <title>THUKUNA</title>
+    <link rel="stylesheet" href="./pet.css" />
+  </head>
+  <body>
+    <main id="pet-canvas" class="pet-canvas" aria-label="Thukuna desktop pet">
+      <output
+        id="dialogue-bubble"
+        class="dialogue-bubble"
+        aria-live="polite"
+        aria-hidden="true"
+      ></output>
+      <section id="pet-stage" class="pet-stage" tabindex="0" aria-label="THUKUNA interactive stage">
+        <div id="direction-layer" class="direction-layer" data-direction="right">
+          <div class="drag-layer">
+            <div id="motion-layer" class="motion-layer" data-motion="idle">
+              <div id="interaction-layer" class="interaction-layer">
+                <div id="event-layer" class="event-layer" data-rare-event="NONE">
+                  <div id="locomotion-visual-layer" class="locomotion-visual-layer" data-action="NONE">
+                    <div id="frame-layer" class="frame-layer" data-anchor="GROUND">
+                      <img
+                        id="thukuna"
+                        class="thukuna-sprite"
+                        src="../assets/thukuna/animations/idle/idle_01.png"
+                        alt="Thukuna"
+                        draggable="false"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <output id="animation-debug" class="animation-debug" hidden></output>
+    </main>
+    <script defer src="./pet.js"></script>
+  </body>
+</html>
