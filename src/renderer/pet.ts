@@ -209,6 +209,12 @@ const renderDebugOverlay = (): void => {
   const dev = devCommandController?.getTelemetry();
   const commandResult = dev?.result;
   if (dev !== undefined) devCommandPanel?.update(dev);
+  if (latestSystemAwarenessSnapshot !== null) {
+    devCommandPanel?.updateSystemAwareness(
+      behavior.state,
+      latestSystemAwarenessSnapshot
+    );
+  }
   const domainActive = behavior.state === "DOMAIN_EXPANSION";
   const domainFrameOffset = animation.animation === null
     ? undefined
