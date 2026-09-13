@@ -2,7 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DEFAULT_THUKUNA_SETTINGS } from "../src/shared/settings";
 import { detectPlatformCapabilities } from "../src/shared/platform";
-import { createTrayMenuModel } from "../src/main/trayMenuModel";
+import {
+  createProductivityTimerTrayModel,
+  createTrayMenuModel
+} from "../src/main/trayMenuModel";
+import {
+  createIdleProductivityTimerSnapshot,
+  type ProductivityTimerSnapshot
+} from "../src/shared/productivityTimer";
 
 const byId = (visible: boolean, settings = DEFAULT_THUKUNA_SETTINGS) =>
   Object.fromEntries(createTrayMenuModel(settings, visible).map((item) => [item.id, item]));
@@ -52,4 +59,45 @@ test("native Wayland disables unsupported tray actions without dropping settings
   assert.equal(items.ALWAYS_ON_TOP.enabled, false);
   assert.equal(items.LAUNCH_ON_STARTUP.enabled, true);
   assert.equal(items.ALWAYS_ON_TOP.checked, true);
+});
+
+const timerItems = (snapshot: ProductivityTimerSnapshot) => Object.fromEntries(
+  createProductivityTimerTrayModel(snapshot).map((item) => [item.id, item])
+);
+
+test("idle timer tray enables presets and disables lifecycle controls", () => {
+  const items = timerItems(createIdleProductivityTimerSnapshot());
+  assert.equal(items["focus-25"].enabled, true);
+  assert.equal(items.TIMER_PAUSE.enabled, false);
+  assert.equal(items.TIMER_RESUME.enabled, false);
+  assert.equal(items.TIMER_CANCEL.enabled, false);
+});
+
+test("running timer tray reports remaining time and enables Pause and Cancel", () => {
+  const items = timerItems({
+    state: "running", durationMs: 300_000, remainingMs: 123_400,
+    startedAt: 1, deadlineAt: 300_001, pausedAt: null, completedAt: null,
+    kind: "focus", label: "Focus", timerId: "timer", completionId: null,
+    completionPending: false, schedulerActive: true, updatedAt: 2
+  });
+  assert.match(items.TIMER_STATUS.label, /2:04/);
+  assert.equal(items["focus-25"].enabled, false);
+  assert.equal(items.TIMER_PAUSE.enabled, true);
+  assert.equal(items.TIMER_RESUME.enabled, false);
+  assert.equal(items.TIMER_CANCEL.enabled, true);
+});
+
+test("paused timer tray enables Resume without changing timer data", () => {
+  const snapshot: ProductivityTimerSnapshot = {
+    state: "paused", durationMs: 300_000, remainingMs: 123_400,
+    startedAt: 1, deadlineAt: null, pausedAt: 2, completedAt: null,
+    kind: "focus", label: "Focus", timerId: "timer", completionId: null,
+    completionPending: false, schedulerActive: false, updatedAt: 2
+  };
+  const before = JSON.stringify(snapshot);
+  const items = timerItems(snapshot);
+  assert.equal(items.TIMER_PAUSE.enabled, false);
+  assert.equal(items.TIMER_RESUME.enabled, true);
+  assert.equal(items.TIMER_CANCEL.enabled, true);
+  assert.equal(JSON.stringify(snapshot), before);
 });

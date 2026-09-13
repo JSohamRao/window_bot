@@ -195,6 +195,47 @@ test("suspend hard-stops runtime, rejects dev force, and rebases a multi-hour ga
   harness.controller.destroy();
 });
 
+test("timer completion uses a safe existing Laugh reaction", () => {
+  const harness = setup();
+  harness.controller.start();
+  assert.equal(harness.controller.reactToTimerCompletion(), true);
+  assert.equal(harness.controller.getSnapshot().state, "LAUGHING");
+  assert.equal(harness.currentAnimation, "laugh");
+  harness.controller.destroy();
+});
+
+test("timer completion wakes sleeping THUKUNA through the existing Wake path", () => {
+  const harness = setup();
+  harness.controller.start();
+  assert.equal(
+    harness.controller.forceState("SLEEPING", { bypassProductPolicy: true }),
+    true
+  );
+  assert.equal(harness.controller.reactToTimerCompletion(), true);
+  assert.equal(harness.currentAnimation, "wake");
+  harness.controller.destroy();
+});
+
+test("timer completion cannot bypass lock, suspend, or Domain priority", () => {
+  const locked = setup();
+  locked.controller.start();
+  locked.controller.applySystemAwareness(
+    awarenessSnapshot("locked", 2, "active", "locked")
+  );
+  assert.equal(locked.controller.reactToTimerCompletion(), false);
+  locked.controller.destroy();
+
+  const domain = setup();
+  domain.controller.start();
+  assert.equal(
+    domain.controller.forceRareEvent("DOMAIN_EXPANSION", { bypassProductPolicy: true }),
+    true
+  );
+  assert.equal(domain.controller.reactToTimerCompletion(), false);
+  assert.equal(domain.controller.getSnapshot().state, "DOMAIN_EXPANSION");
+  domain.controller.destroy();
+});
+
 test("repeated Rage exits remove the visual class without accumulation", () => {
   const { controller, interaction, step } = setup();
   controller.start();
