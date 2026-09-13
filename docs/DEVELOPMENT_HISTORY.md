@@ -55,3 +55,11 @@ History categories are therefore:
 - **Phases 1–12:** historically reconstructed milestone markers, followed by the real canonical Phase 12 baseline snapshot.
 - **Phases 13–14:** deferred to V2 and not implemented.
 - **Phase 15 onward:** genuine Git development using normal feature branches and commits as work occurs.
+
+## Phase 16 — Productivity Timers
+
+Phase 16 is genuine development on `phase-16-productivity-timers`, based on the Phase 15 merge `b87af82a6f152095b8abfea967f602457aa7482f`. It adds one main-process, deadline-based productivity timer; five compact production presets; pause, resume, cancel, completion identity, lifecycle-only persistence, restart recovery, secure typed IPC, a tray submenu, development-only short timers, compact diagnostics, and a safe existing Laugh/Wake completion reaction.
+
+The Phase 15 system context remains authoritative for visible safety: lock and suspend do not pause the deadline, but they defer the renderer reaction until the session is active. Idle, battery, Low Power, hide/show, renderer throttling, and delayed scheduler callbacks cannot change timer truth. Automated engineering verification passes with 265 tests and 0 failures while preserving all 229 baseline tests and production visual/security invariants.
+
+This entry records **real Git history**, not a reconstructed milestone. Physical Windows validation is still required, so the feature branch is intentionally unmerged and the current verdict is **B. ENGINEERING COMPLETE — MANUAL WINDOWS VALIDATION REQUIRED**.
