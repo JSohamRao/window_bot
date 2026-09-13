@@ -1,6 +1,7 @@
 import type { ThukunaSettings } from "../../shared/settings";
 import type { AutonomousStateName } from "../states/PetState";
 import type { WeightedChoice } from "../utils/random";
+import type { SystemAwarenessSnapshot } from "../../shared/systemAwareness";
 
 export type PowerMode = "NORMAL" | "CHAOS" | "LOW_POWER";
 
@@ -63,6 +64,8 @@ export const resolvePowerMode = (settings: ThukunaSettings): PowerMode =>
 
 export class PowerPolicyController {
   private settings: ThukunaSettings;
+  private activityState: SystemAwarenessSnapshot["activityState"] = "unknown";
+  private powerSource: SystemAwarenessSnapshot["powerSource"] = "unknown";
 
   public constructor(settings: ThukunaSettings) {
     this.settings = { ...settings };
@@ -72,12 +75,35 @@ export class PowerPolicyController {
     this.settings = { ...settings };
   }
 
+  public updateSystemAwareness(snapshot: SystemAwarenessSnapshot): void {
+    this.activityState = snapshot.activityState;
+    this.powerSource = snapshot.powerSource;
+  }
+
   public getSnapshot(): PowerPolicySnapshot {
     const mode = resolvePowerMode(this.settings);
     const policy = POLICIES[mode];
+    const systemIdle = mode !== "LOW_POWER" && this.activityState === "idle";
+    const onBattery = mode !== "LOW_POWER" && this.powerSource === "battery";
     return {
       mode,
       ...policy,
+      autonomousMovementMultiplier:
+        policy.autonomousMovementMultiplier *
+        (systemIdle ? 0.6 : 1) *
+        (onBattery ? 0.8 : 1),
+      idleDurationMultiplier:
+        policy.idleDurationMultiplier *
+        (systemIdle ? 1.75 : 1) *
+        (onBattery ? 1.25 : 1),
+      personalityUpdateIntervalMs:
+        policy.personalityUpdateIntervalMs *
+        (systemIdle ? 2 : 1) *
+        (onBattery ? 1.5 : 1),
+      rareEventIntervalMultiplier:
+        policy.rareEventIntervalMultiplier *
+        (systemIdle ? 1.7 : 1) *
+        (onBattery ? 1.35 : 1),
       mouseAwarenessAllowed:
         mode !== "LOW_POWER" && this.settings.mouseAwarenessEnabled,
       rareEventsAllowed: mode !== "LOW_POWER" && this.settings.rareEventsEnabled
@@ -93,11 +119,21 @@ export class PowerPolicyController {
       CHAOS: { CRAWLING: 1.35, STARING: 1.1, LAUGHING: 1.4, SLEEPING: 0.75, ANGRY: 1, JUMPING: 1.45, HOPPING: 1.55, CLIMBING: 1.35, PERCHED: 1.15, IDLE: 0.8 },
       LOW_POWER: { CRAWLING: 0.02, STARING: 0.45, LAUGHING: 0.2, SLEEPING: 2.5, ANGRY: 0.45, JUMPING: 0, HOPPING: 0, CLIMBING: 0, PERCHED: 0, IDLE: 2.5 }
     };
+    const systemIdle = mode !== "LOW_POWER" && this.activityState === "idle";
+    const onBattery = mode !== "LOW_POWER" && this.powerSource === "battery";
     return choices.map((choice) => ({
       value: choice.value,
       weight: mode === "LOW_POWER" && ["JUMPING", "HOPPING", "CLIMBING", "PERCHED"].includes(choice.value)
         ? 0
-        : Math.max(choice.weight * multipliers[mode][choice.value], 0.1)
+        : Math.max(
+            choice.weight *
+              multipliers[mode][choice.value] *
+              (systemIdle && choice.value === "IDLE" ? 2 : 1) *
+              (systemIdle && choice.value === "SLEEPING" ? 1.75 : 1) *
+              (onBattery && (choice.value === "IDLE" || choice.value === "SLEEPING") ? 1.25 : 1) *
+              (onBattery && ["CRAWLING", "JUMPING", "HOPPING", "CLIMBING"].includes(choice.value) ? 0.7 : 1),
+            0.1
+          )
     }));
   }
 }

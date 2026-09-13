@@ -10,6 +10,30 @@ import {
   detectPlatformCapabilities,
   type PlatformCapabilities
 } from "../src/shared/platform";
+import type { SystemAwarenessSnapshot } from "../src/shared/systemAwareness";
+
+const awarenessSnapshot = (
+  sessionState: SystemAwarenessSnapshot["sessionState"],
+  updatedAt: number,
+  from: string,
+  to: string
+): SystemAwarenessSnapshot => ({
+  sessionState,
+  activityState: "active",
+  powerSource: "ac",
+  idleSeconds: 0,
+  updatedAt,
+  capabilities: {
+    idleAwareness: true,
+    sessionEvents: true,
+    suspendResume: true,
+    powerSource: true,
+    displayEvents: true
+  },
+  lastTransition: { kind: "session", from, to, at: updatedAt },
+  idleSamplerActive: sessionState === "active",
+  listenerCount: 9
+});
 
 class FakeClassList {
   private readonly values = new Set<string>();
@@ -137,6 +161,38 @@ test("interaction override completes while manual autonomy remains paused", () =
   assert.equal(controller.getSnapshot().interactionOverride, false);
   assert.equal(controller.getSnapshot().autonomyPaused, true);
   controller.destroy();
+});
+
+test("suspend hard-stops runtime, rejects dev force, and rebases a multi-hour gap", () => {
+  const harness = setup();
+  harness.controller.start();
+  harness.step(100);
+  assert.equal(
+    harness.controller.forceState("CRAWLING", { bypassProductPolicy: true }),
+    true
+  );
+  harness.controller.applySystemAwareness(
+    awarenessSnapshot("suspended", 200, "active", "suspended")
+  );
+  assert.equal(harness.pendingFrameCount, 0);
+  assert.equal(harness.controller.getSnapshot().state, "IDLE");
+  assert.equal(harness.controller.getSnapshot().moving, false);
+  assert.equal(harness.controller.getSnapshot().systemSafetyBlockReason, "SYSTEM_SUSPENDED");
+  assert.equal(
+    harness.controller.forceRareEvent("DOMAIN_EXPANSION", { bypassProductPolicy: true }),
+    false
+  );
+
+  harness.controller.applySystemAwareness(
+    awarenessSnapshot("active", 7_200_200, "suspended", "active")
+  );
+  assert.equal(harness.pendingFrameCount > 0, true);
+  harness.step(7_200_200);
+  assert.equal(harness.controller.getSnapshot().stateElapsedMs, 0);
+  harness.step(7_200_216);
+  assert.equal(harness.controller.getSnapshot().stateElapsedMs <= 16, true);
+  assert.equal(harness.controller.getSnapshot().windowX, 0);
+  harness.controller.destroy();
 });
 
 test("repeated Rage exits remove the visual class without accumulation", () => {

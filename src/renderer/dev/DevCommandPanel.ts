@@ -1,10 +1,16 @@
 import type { DevCommandController, DevCommandTelemetry } from "./DevCommandController";
 import { getDevPanelCommands } from "./devCommandRegistry";
+import type { SystemAwarenessControllerSnapshot } from "../engine/SystemAwarenessController";
+import { formatSystemAwarenessDiagnostics } from "./SystemAwarenessDiagnostics";
 
 export interface DevCommandPanel {
   readonly element: HTMLElement;
   setVisible(visible: boolean): void;
   update(telemetry: DevCommandTelemetry): void;
+  updateSystemAwareness(
+    behaviorState: string | null,
+    snapshot: SystemAwarenessControllerSnapshot
+  ): void;
   destroy(): void;
 }
 
@@ -15,7 +21,13 @@ export const createDevCommandPanel = (
   const panel = document.createElement("section");
   panel.className = "dev-command-panel";
   panel.hidden = true;
-  panel.setAttribute("aria-label", "THUKUNA development commands");
+  panel.setAttribute("aria-label", "THUKUNA diagnostics and development commands");
+
+  const awareness = document.createElement("output");
+  awareness.className = "dev-command-panel__awareness";
+  awareness.setAttribute("aria-live", "polite");
+  awareness.textContent = "SYSTEM AWARENESS\nWaiting for current state...";
+  panel.append(awareness);
 
   const heading = document.createElement("strong");
   heading.className = "dev-command-panel__heading";
@@ -59,6 +71,10 @@ export const createDevCommandPanel = (
         `REQ ${result.requestedState ?? "--"}/${result.requestedAnimation ?? "--"}`,
         `NOW ${result.actualState ?? "--"}/${result.actualAnimation ?? "--"}`
       ].join("\n");
+    },
+    updateSystemAwareness: (behaviorState, snapshot) => {
+      const text = formatSystemAwarenessDiagnostics(behaviorState, snapshot);
+      if (awareness.textContent !== text) awareness.textContent = text;
     },
     destroy: () => {
       for (const cleanup of cleanups) cleanup();

@@ -17,6 +17,10 @@ import {
   isPlatformCapabilities,
   type PlatformCapabilities
 } from "../shared/platform";
+import {
+  isSystemAwarenessSnapshot,
+  type SystemAwarenessSnapshot
+} from "../shared/systemAwareness";
 
 const isCursorPositionResult = (
   value: unknown
@@ -84,6 +88,25 @@ contextBridge.exposeInMainWorld("thukunaWindow", {
   resetPosition: async (): Promise<boolean> => {
     const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.resetPositionRequest);
     return result === true;
+  },
+  getSystemAwareness: async (): Promise<SystemAwarenessSnapshot> => {
+    const result: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.systemAwarenessGet
+    );
+    if (!isSystemAwarenessSnapshot(result)) {
+      throw new Error("Invalid system-awareness response.");
+    }
+    return result;
+  },
+  onSystemAwarenessChanged: (
+    listener: (snapshot: SystemAwarenessSnapshot) => void
+  ): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, value: unknown): void => {
+      if (isSystemAwarenessSnapshot(value)) listener(value);
+    };
+    ipcRenderer.on(IPC_CHANNELS.systemAwarenessChanged, handler);
+    return () =>
+      ipcRenderer.removeListener(IPC_CHANNELS.systemAwarenessChanged, handler);
   },
   onSettingsChanged: (listener: (settings: ThukunaSettings) => void): (() => void) => {
     const handler = (_event: Electron.IpcRendererEvent, value: unknown): void => {

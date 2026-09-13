@@ -71,6 +71,35 @@ interface ThukunaSettings {
   launchOnStartup: boolean;
 }
 
+type SystemSessionState = "active" | "locked" | "suspended";
+type SystemActivityState = "active" | "idle" | "unknown";
+type SystemPowerSource = "ac" | "battery" | "unknown";
+
+interface SystemAwarenessTransition {
+  readonly kind: "session" | "activity" | "power" | "display" | "refresh";
+  readonly from: string;
+  readonly to: string;
+  readonly at: number;
+}
+
+interface SystemAwarenessSnapshot {
+  readonly sessionState: SystemSessionState;
+  readonly activityState: SystemActivityState;
+  readonly powerSource: SystemPowerSource;
+  readonly idleSeconds: number;
+  readonly updatedAt: number;
+  readonly capabilities: {
+    readonly idleAwareness: boolean;
+    readonly sessionEvents: boolean;
+    readonly suspendResume: boolean;
+    readonly powerSource: boolean;
+    readonly displayEvents: boolean;
+  };
+  readonly lastTransition: SystemAwarenessTransition | null;
+  readonly idleSamplerActive: boolean;
+  readonly listenerCount: number;
+}
+
 interface ThukunaWindowApi {
   startDrag(point: ScreenPoint): void;
   moveDrag(point: ScreenPoint): void;
@@ -82,6 +111,10 @@ interface ThukunaWindowApi {
   getSettings(): Promise<ThukunaSettings>;
   updateSetting(key: ThukunaSettingKey, value: boolean): Promise<ThukunaSettings>;
   resetPosition(): Promise<boolean>;
+  getSystemAwareness(): Promise<SystemAwarenessSnapshot>;
+  onSystemAwarenessChanged(
+    listener: (snapshot: SystemAwarenessSnapshot) => void
+  ): () => void;
   onSettingsChanged(listener: (settings: ThukunaSettings) => void): () => void;
   onVisibilityChanged(listener: (visible: boolean) => void): () => void;
   onResetPositionRequested(listener: () => void): () => void;
