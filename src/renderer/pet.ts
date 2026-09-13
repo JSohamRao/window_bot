@@ -37,6 +37,10 @@ import {
   SystemAwarenessController,
   type SystemAwarenessControllerSnapshot
 } from "./engine/SystemAwarenessController";
+import {
+  ProductivityTimerController
+} from "./engine/ProductivityTimerController";
+import type { ProductivityTimerSnapshot } from "../shared/productivityTimer";
 
 const requireElement = <ElementType extends Element>(selector: string): ElementType => {
   const element = document.querySelector<ElementType>(selector);
@@ -70,6 +74,7 @@ let animationController: AnimationController<AnimationName> | null = null;
 let devCommandController: DevCommandController | null = null;
 let devCommandPanel: DevCommandPanel | null = null;
 let systemAwarenessController: SystemAwarenessController | null = null;
+let productivityTimerController: ProductivityTimerController | null = null;
 let currentSettings: SharedThukunaSettings = { ...DEFAULT_THUKUNA_SETTINGS };
 let runtimeVisible = true;
 const bridgeUnsubscribers: Array<() => void> = [];
@@ -184,6 +189,7 @@ petStage.addEventListener("lostpointercapture", (event) =>
 let latestAnimationSnapshot: AnimationSnapshot<AnimationName> | null = null;
 let latestThukunaSnapshot: ThukunaSnapshot | null = null;
 let latestSystemAwarenessSnapshot: SystemAwarenessControllerSnapshot | null = null;
+let latestProductivityTimerSnapshot: ProductivityTimerSnapshot | null = null;
 
 const seconds = (milliseconds: number): string =>
   `${(milliseconds / 1000).toFixed(1)}s`;
@@ -214,6 +220,9 @@ const renderDebugOverlay = (): void => {
       behavior.state,
       latestSystemAwarenessSnapshot
     );
+  }
+  if (latestProductivityTimerSnapshot !== null) {
+    devCommandPanel?.updateProductivityTimer(latestProductivityTimerSnapshot);
   }
   const domainActive = behavior.state === "DOMAIN_EXPANSION";
   const domainFrameOffset = animation.animation === null
@@ -278,6 +287,7 @@ const updateAnimationSnapshot = (
 
 const updateThukunaSnapshot = (snapshot: ThukunaSnapshot): void => {
   latestThukunaSnapshot = snapshot;
+  productivityTimerController?.notifyReactionOpportunity();
   renderDebugOverlay();
 };
 
@@ -323,7 +333,14 @@ const installDebugControls = (
   });
   devCommandController = devControls;
   if (DEVELOPMENT_CONTROLS_ENABLED) {
-    devCommandPanel = createDevCommandPanel(petCanvas, devControls);
+    devCommandPanel = createDevCommandPanel(petCanvas, devControls, {
+      startFiveSecondTimer: () => {
+        void productivityTimerController?.startPreset("development-5-seconds");
+      },
+      startTenSecondTimer: () => {
+        void productivityTimerController?.startPreset("development-10-seconds");
+      }
+    });
   }
   const keyHandler = (event: KeyboardEvent): void => {
     void devControls.handleKey(event);
@@ -468,6 +485,9 @@ const initializeAnimationEngine = async (): Promise<void> => {
         document.body.classList.remove("is-dragging");
       }
       thukunaController?.applySystemAwareness(snapshot.awareness);
+      productivityTimerController?.setSystemSessionState(
+        snapshot.awareness.sessionState
+      );
       dialogueController?.setEnabled(
         runtimeVisible &&
         currentSettings.dialogueEnabled &&
@@ -478,6 +498,30 @@ const initializeAnimationEngine = async (): Promise<void> => {
   );
   await systemAwarenessController.start();
   bridgeUnsubscribers.push(() => systemAwarenessController?.dispose());
+  productivityTimerController = new ProductivityTimerController(
+    window.thukunaWindow,
+    (snapshot) => {
+      latestProductivityTimerSnapshot = snapshot;
+      devCommandPanel?.updateProductivityTimer(snapshot);
+      renderDebugOverlay();
+    },
+    (snapshot) => {
+      if (thukunaController?.reactToTimerCompletion() !== true) return false;
+      dialogueController?.show("timer", performance.now(), {
+        bypassCooldown: true,
+        replace: true,
+        preferredLine: snapshot.kind === "focus"
+          ? "Focus session complete!"
+          : "Timer done!"
+      });
+      return true;
+    }
+  );
+  productivityTimerController.setSystemSessionState(
+    latestSystemAwarenessSnapshot?.awareness.sessionState ?? "active"
+  );
+  await productivityTimerController.start();
+  bridgeUnsubscribers.push(() => productivityTimerController?.dispose());
   bridgeUnsubscribers.push(installDebugControls(
     animationController,
     thukunaController,
@@ -493,6 +537,8 @@ const initializeAnimationEngine = async (): Promise<void> => {
       thukunaController?.destroy();
       systemAwarenessController?.dispose();
       systemAwarenessController = null;
+      productivityTimerController?.dispose();
+      productivityTimerController = null;
       thukunaController?.setMouseDialogueHandler(null);
       thukunaController?.setRareEventDialogueHandler(null);
       interactionController?.hideDialogue();

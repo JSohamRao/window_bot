@@ -928,6 +928,30 @@ export class ThukunaController implements InteractionBehaviorPort {
     return true;
   }
 
+  public reactToTimerCompletion(): boolean {
+    const state = this.stateMachine.getCurrentState();
+    if (
+      !this.started ||
+      !this.visible ||
+      this.systemRuntimePaused ||
+      this.interactionOverride ||
+      (state !== "IDLE" &&
+        state !== "STARING" &&
+        state !== "LAUGHING" &&
+        state !== "SLEEPING")
+    ) return false;
+
+    if (state === "SLEEPING") return this.forceWake();
+    this.locomotion.cancel();
+    this.movement.stop();
+    this.cursor.disable();
+    this.clearInteractionOverride();
+    this.developmentOverrideActive = false;
+    this.transitionOrRestart("LAUGHING");
+    this.emitSnapshot();
+    return true;
+  }
+
   public setInteractionUpdate(
     update: ((timestamp: number) => void) | null
   ): void {

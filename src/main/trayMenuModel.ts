@@ -3,6 +3,13 @@ import {
   DEFAULT_PLATFORM_CAPABILITIES,
   type PlatformCapabilities
 } from "../shared/platform";
+import {
+  PRODUCTIVITY_TIMER_PRESETS,
+  PRODUCTIVITY_TIMER_USER_PRESET_IDS,
+  formatProductivityTimerRemaining,
+  type ProductivityTimerPresetId,
+  type ProductivityTimerSnapshot
+} from "../shared/productivityTimer";
 
 export type TrayActionId =
   | "VISIBILITY"
@@ -23,6 +30,47 @@ export interface TrayMenuItemModel {
   readonly checked?: boolean;
   readonly enabled?: boolean;
 }
+
+export type ProductivityTimerTrayActionId =
+  | ProductivityTimerPresetId
+  | "TIMER_STATUS"
+  | "TIMER_PAUSE"
+  | "TIMER_RESUME"
+  | "TIMER_CANCEL";
+
+export interface ProductivityTimerTrayItemModel {
+  readonly id: ProductivityTimerTrayActionId;
+  readonly label: string;
+  readonly enabled: boolean;
+}
+
+export const createProductivityTimerTrayModel = (
+  snapshot: ProductivityTimerSnapshot
+): readonly ProductivityTimerTrayItemModel[] => {
+  const mayStart =
+    snapshot.state === "idle" ||
+    (snapshot.state === "completed" && !snapshot.completionPending);
+  const status = snapshot.state === "idle"
+    ? "No active timer"
+    : snapshot.state === "completed"
+      ? `${snapshot.label ?? "Timer"}: complete`
+      : `${snapshot.label ?? "Timer"}: ${formatProductivityTimerRemaining(snapshot.remainingMs)} (${snapshot.state})`;
+  return [
+    { id: "TIMER_STATUS", label: status, enabled: false },
+    ...PRODUCTIVITY_TIMER_USER_PRESET_IDS.map((id) => ({
+      id,
+      label: PRODUCTIVITY_TIMER_PRESETS[id].label,
+      enabled: mayStart
+    })),
+    { id: "TIMER_PAUSE", label: "Pause", enabled: snapshot.state === "running" },
+    { id: "TIMER_RESUME", label: "Resume", enabled: snapshot.state === "paused" },
+    {
+      id: "TIMER_CANCEL",
+      label: "Cancel",
+      enabled: snapshot.state !== "idle"
+    }
+  ];
+};
 
 export const createTrayMenuModel = (
   settings: ThukunaSettings,
