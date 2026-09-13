@@ -1,6 +1,6 @@
 # Phase 15 — System Awareness
 
-Status: implemented on `phase-15-system-awareness`; automated verification complete, normal-Windows manual validation required before merge.
+Status: **A. PHASE 15 FULLY COMPLETE.** Engineering verification and physical Windows manual validation passed on `phase-15-system-awareness` before merge to `main`.
 
 ## Architecture discovered
 
@@ -99,7 +99,13 @@ A bounded in-memory transition history (maximum 20) is renderer diagnostic state
 
 Automated tests use a fake provider and fake interval scheduler to cover initial state, all session/power/idle transitions, pre-suspend lock preservation, unknown/failure handling, duplicate suppression, one-sampler ownership, idempotent lifecycle, cleanup, refresh, and geometry invalidation. Pure runtime-policy tests cover hard vs soft priority and prove settings are not mutated. Renderer-controller tests cover subscription cleanup, old-snapshot rejection, composition, deduplication, and the 20-entry history bound. Integration tests cover hard safety against dev override and an explicit simulated two-hour clock gap. Static bridge checks verify narrow validated IPC and unchanged Electron security flags.
 
-The full existing suite began at 199 tests. Phase 15 adds 25 focused tests for a total of 224, plus `npm run build`, `git diff --check`, and invariant checks. Real lock, sleep/resume, charger, and display behavior still require the supplied normal-Windows manual checklist because the known Codex-host Electron limitation must not be worked around by weakening sandboxing.
+The full existing suite began at 199 tests. Phase 15 adds 30 focused tests for a total of 229, plus `npm run build`, `git diff --check`, and invariant checks. Five of those tests cover the final diagnostics-visibility correction: current values, distinct behavior/user labels, live transition output, bounded transition/history display, scrollability, and preserved developer-command wiring.
+
+## Physical Windows validation — passed
+
+The normal-Windows checklist was completed successfully on real Windows hardware. Validation covered diagnostics visibility; `ACTIVE -> IDLE` after 120+ seconds; `IDLE -> ACTIVE` after user input; `LOCKED -> ACTIVE` recovery; `SUSPEND -> RESUME` recovery; `AC -> BATTERY -> AC`; display/work-area change; Crawl; Jump; Climb; Perch/Drop; Domain; tray Hide/Show; and Reset Position.
+
+Resume produced no teleport, large physics delta, animation catch-up burst, or queued rare-event burst. Battery and idle context did not change the persisted power-policy mode. Display changes retained safe geometry. Together with the passing automated suite, these results establish the final verdict: **A. PHASE 15 FULLY COMPLETE.**
 
 ## Non-goals
 

@@ -48,7 +48,7 @@ Phases 13–14 were deferred to V2 and are not represented as implemented.
 
 Phase 15 — System Awareness begins after canonical Phase 12 commit `0b1925286e0dff8c5c6bff532ac2fc27cd864d0d` and tag `v0.1.0-windows`. Unlike the earlier reconstructed marker history, Phase 15 is ordinary development performed on the real feature branch `phase-15-system-awareness` with logical source, integration, test, and documentation commits.
 
-Phase 15 adds one main-process owner for Windows lock/unlock, suspend/resume, AC/battery, display/work-area changes, and a single 15-second idle sampler with a 120-second threshold. It connects this state through validated typed IPC to a renderer context controller, applies hard lock/suspend safety and soft idle/battery policy, rebases clocks after resume, and retains the existing privacy/security boundaries. Automated engineering verification is complete; the branch remains unmerged until the normal-Windows manual checklist validates physical OS events.
+Phase 15 adds one main-process owner for Windows lock/unlock, suspend/resume, AC/battery, display/work-area changes, and a single 15-second idle sampler with a 120-second threshold. It connects this state through validated typed IPC to a renderer context controller, applies hard lock/suspend safety and soft idle/battery policy, rebases clocks after resume, and retains the existing privacy/security boundaries. Automated engineering verification and the complete physical Windows checklist passed, including idle/active transitions, lock/unlock, sleep/resume, AC/battery, display safety, representative animations, tray visibility, Reset Position, and visible System Awareness diagnostics. Final verdict: **A. PHASE 15 FULLY COMPLETE.**
 
 History categories are therefore:
 
