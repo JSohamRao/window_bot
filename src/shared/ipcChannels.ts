@@ -45,5 +45,12 @@ export const IPC_CHANNELS = {
   resetPosition: "thukuna:reset-position",
   resetPositionRequest: "thukuna:reset-position-request",
   systemAwarenessGet: "thukuna:system-awareness-get",
-  systemAwarenessChanged: "thukuna:system-awareness-changed"
+  systemAwarenessChanged: "thukuna:system-awareness-changed",
+  productivityTimerGet: "thukuna:productivity-timer-get",
+  productivityTimerStart: "thukuna:productivity-timer-start",
+  productivityTimerPause: "thukuna:productivity-timer-pause",
+  productivityTimerResume: "thukuna:productivity-timer-resume",
+  productivityTimerCancel: "thukuna:productivity-timer-cancel",
+  productivityTimerAcknowledge: "thukuna:productivity-timer-acknowledge",
+  productivityTimerChanged: "thukuna:productivity-timer-changed"
 } as const;
