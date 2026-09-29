@@ -452,12 +452,13 @@ const initializeAnimationEngine = async (): Promise<void> => {
       dragFrame = null;
       document.body.classList.remove("is-dragging");
     }
-    thukunaController?.setRuntimeVisible(visible);
+    // Resuming the FSM can synchronously deliver a pending timer reaction.
     dialogueController?.setEnabled(
       visible &&
       currentSettings.dialogueEnabled &&
       latestSystemAwarenessSnapshot?.runtime.hardPaused !== true
     );
+    thukunaController?.setRuntimeVisible(visible);
     if (!visible) animationController?.pause();
     renderDebugOverlay();
   };
@@ -484,14 +485,15 @@ const initializeAnimationEngine = async (): Promise<void> => {
         dragFrame = null;
         document.body.classList.remove("is-dragging");
       }
-      thukunaController?.applySystemAwareness(snapshot.awareness);
-      productivityTimerController?.setSystemSessionState(
-        snapshot.awareness.sessionState
-      );
+      // Enable presentation before either controller releases a pending completion.
       dialogueController?.setEnabled(
         runtimeVisible &&
         currentSettings.dialogueEnabled &&
         !snapshot.runtime.hardPaused
+      );
+      thukunaController?.applySystemAwareness(snapshot.awareness);
+      productivityTimerController?.setSystemSessionState(
+        snapshot.awareness.sessionState
       );
       renderDebugOverlay();
     }
