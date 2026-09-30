@@ -100,6 +100,47 @@ interface SystemAwarenessSnapshot {
   readonly listenerCount: number;
 }
 
+type ProductivityTimerState = "idle" | "running" | "paused" | "completed";
+type ProductivityTimerKind = "countdown" | "focus" | "short-break" | "long-break";
+
+interface ProductivityTimerStartRequest {
+  readonly kind: ProductivityTimerKind;
+  readonly durationMs: number;
+  readonly label: string | null;
+}
+
+interface ProductivityTimerSnapshot {
+  readonly state: ProductivityTimerState;
+  readonly durationMs: number;
+  readonly remainingMs: number;
+  readonly startedAt: number | null;
+  readonly deadlineAt: number | null;
+  readonly pausedAt: number | null;
+  readonly completedAt: number | null;
+  readonly kind: ProductivityTimerKind | null;
+  readonly label: string | null;
+  readonly timerId: string | null;
+  readonly completionId: string | null;
+  readonly completionPending: boolean;
+  readonly schedulerActive: boolean;
+  readonly updatedAt: number;
+}
+
+interface ProductivityTimerCommandResult {
+  readonly accepted: boolean;
+  readonly reason:
+    | "STARTED"
+    | "PAUSED"
+    | "RESUMED"
+    | "CANCELLED"
+    | "COMPLETION_ACKNOWLEDGED"
+    | "ACTIVE_TIMER_EXISTS"
+    | "INVALID_REQUEST"
+    | "INVALID_STATE"
+    | "COMPLETION_ID_MISMATCH";
+  readonly snapshot: ProductivityTimerSnapshot;
+}
+
 interface ThukunaWindowApi {
   startDrag(point: ScreenPoint): void;
   moveDrag(point: ScreenPoint): void;
@@ -114,6 +155,19 @@ interface ThukunaWindowApi {
   getSystemAwareness(): Promise<SystemAwarenessSnapshot>;
   onSystemAwarenessChanged(
     listener: (snapshot: SystemAwarenessSnapshot) => void
+  ): () => void;
+  getProductivityTimer(): Promise<ProductivityTimerSnapshot>;
+  startProductivityTimer(
+    request: ProductivityTimerStartRequest
+  ): Promise<ProductivityTimerCommandResult>;
+  pauseProductivityTimer(): Promise<ProductivityTimerCommandResult>;
+  resumeProductivityTimer(): Promise<ProductivityTimerCommandResult>;
+  cancelProductivityTimer(): Promise<ProductivityTimerCommandResult>;
+  acknowledgeProductivityTimerCompletion(
+    completionId: string
+  ): Promise<ProductivityTimerCommandResult>;
+  onProductivityTimerChanged(
+    listener: (snapshot: ProductivityTimerSnapshot) => void
   ): () => void;
   onSettingsChanged(listener: (settings: ThukunaSettings) => void): () => void;
   onVisibilityChanged(listener: (visible: boolean) => void): () => void;

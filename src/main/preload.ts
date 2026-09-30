@@ -21,6 +21,24 @@ import {
   isSystemAwarenessSnapshot,
   type SystemAwarenessSnapshot
 } from "../shared/systemAwareness";
+import {
+  isProductivityTimerCommandResult,
+  isProductivityTimerSnapshot,
+  isProductivityTimerStartRequest,
+  type ProductivityTimerCommandResult,
+  type ProductivityTimerSnapshot,
+  type ProductivityTimerStartRequest
+} from "../shared/productivityTimer";
+
+const validatedTimerResult = async (
+  promise: Promise<unknown>
+): Promise<ProductivityTimerCommandResult> => {
+  const result = await promise;
+  if (!isProductivityTimerCommandResult(result)) {
+    throw new Error("Invalid productivity-timer command response.");
+  }
+  return result;
+};
 
 const isCursorPositionResult = (
   value: unknown
@@ -107,6 +125,51 @@ contextBridge.exposeInMainWorld("thukunaWindow", {
     ipcRenderer.on(IPC_CHANNELS.systemAwarenessChanged, handler);
     return () =>
       ipcRenderer.removeListener(IPC_CHANNELS.systemAwarenessChanged, handler);
+  },
+  getProductivityTimer: async (): Promise<ProductivityTimerSnapshot> => {
+    const result: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.productivityTimerGet
+    );
+    if (!isProductivityTimerSnapshot(result)) {
+      throw new Error("Invalid productivity-timer response.");
+    }
+    return result;
+  },
+  startProductivityTimer: (
+    request: ProductivityTimerStartRequest
+  ): Promise<ProductivityTimerCommandResult> => {
+    if (!isProductivityTimerStartRequest(request, true)) {
+      throw new TypeError("Invalid productivity-timer start request.");
+    }
+    return validatedTimerResult(
+      ipcRenderer.invoke(IPC_CHANNELS.productivityTimerStart, request)
+    );
+  },
+  pauseProductivityTimer: (): Promise<ProductivityTimerCommandResult> =>
+    validatedTimerResult(ipcRenderer.invoke(IPC_CHANNELS.productivityTimerPause)),
+  resumeProductivityTimer: (): Promise<ProductivityTimerCommandResult> =>
+    validatedTimerResult(ipcRenderer.invoke(IPC_CHANNELS.productivityTimerResume)),
+  cancelProductivityTimer: (): Promise<ProductivityTimerCommandResult> =>
+    validatedTimerResult(ipcRenderer.invoke(IPC_CHANNELS.productivityTimerCancel)),
+  acknowledgeProductivityTimerCompletion: (
+    completionId: string
+  ): Promise<ProductivityTimerCommandResult> => {
+    if (completionId.length === 0 || completionId.length > 128) {
+      throw new TypeError("Invalid productivity-timer completion ID.");
+    }
+    return validatedTimerResult(
+      ipcRenderer.invoke(IPC_CHANNELS.productivityTimerAcknowledge, completionId)
+    );
+  },
+  onProductivityTimerChanged: (
+    listener: (snapshot: ProductivityTimerSnapshot) => void
+  ): (() => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, value: unknown): void => {
+      if (isProductivityTimerSnapshot(value)) listener(value);
+    };
+    ipcRenderer.on(IPC_CHANNELS.productivityTimerChanged, handler);
+    return () =>
+      ipcRenderer.removeListener(IPC_CHANNELS.productivityTimerChanged, handler);
   },
   onSettingsChanged: (listener: (settings: ThukunaSettings) => void): (() => void) => {
     const handler = (_event: Electron.IpcRendererEvent, value: unknown): void => {

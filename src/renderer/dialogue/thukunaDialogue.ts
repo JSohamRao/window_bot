@@ -14,7 +14,8 @@ export type DialogueCategory =
   | "freeze"
   | "zoom"
   | "chaos"
-  | "domain";
+  | "domain"
+  | "timer";
 
 export const THUKUNA_DIALOGUE: Readonly<
   Record<DialogueCategory, readonly string[]>
@@ -34,5 +35,6 @@ export const THUKUNA_DIALOGUE: Readonly<
   freeze: ["...", "what.", "I see you."],
   zoom: ["closer.", "hm."],
   chaos: ["HAHA.", "run."],
-  domain: ["DOMAIN EXPANSION.", "hehe."]
+  domain: ["DOMAIN EXPANSION.", "hehe."],
+  timer: ["Timer done!", "Focus session complete!"]
 };

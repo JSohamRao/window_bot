@@ -18,6 +18,12 @@ import {
 } from "./platform/PlatformService";
 import { SystemAwarenessService } from "./systemAwareness/SystemAwarenessService";
 import { createElectronSystemAwarenessProvider } from "./systemAwareness/ElectronSystemAwarenessProvider";
+import { ProductivityTimerService } from "./productivityTimer/ProductivityTimerService";
+import { ProductivityTimerStore } from "./productivityTimer/ProductivityTimerStore";
+import {
+  requestForProductivityTimerPreset,
+  type ProductivityTimerPresetId
+} from "../shared/productivityTimer";
 
 console.info("[THUKUNA startup] Main module reached.");
 
@@ -26,6 +32,7 @@ let trayController: ThukunaTrayController | null = null;
 let settingsStore: SettingsStore | null = null;
 let platformService: PlatformService | null = null;
 let systemAwarenessService: SystemAwarenessService | null = null;
+let productivityTimerService: ProductivityTimerService | null = null;
 let disposePhase15Ipc: (() => void) | null = null;
 let quitting = false;
 
@@ -39,7 +46,8 @@ const refreshTray = (): void => {
   if (settingsStore === null) return;
   trayController?.refresh(
     settingsStore.getSnapshot(),
-    petWindow?.isVisible() ?? false
+    petWindow?.isVisible() ?? false,
+    productivityTimerService?.getSnapshot()
   );
 };
 
@@ -77,6 +85,12 @@ const showThukuna = (): void => {
         sendToRenderer(
           IPC_CHANNELS.systemAwarenessChanged,
           systemAwarenessService.getSnapshot()
+        );
+      }
+      if (productivityTimerService !== null) {
+        sendToRenderer(
+          IPC_CHANNELS.productivityTimerChanged,
+          productivityTimerService.getSnapshot()
         );
       }
     });
@@ -141,8 +155,16 @@ if (primaryInstance) void app.whenReady().then(async () => {
   systemAwarenessService = new SystemAwarenessService(
     createElectronSystemAwarenessProvider(),
     {
-      onChanged: (snapshot) =>
-        sendToRenderer(IPC_CHANNELS.systemAwarenessChanged, snapshot),
+      onChanged: (snapshot) => {
+        sendToRenderer(IPC_CHANNELS.systemAwarenessChanged, snapshot);
+        if (snapshot.sessionState === "active" && productivityTimerService !== null) {
+          productivityTimerService.refresh();
+          sendToRenderer(
+            IPC_CHANNELS.productivityTimerChanged,
+            productivityTimerService.getSnapshot()
+          );
+        }
+      },
       onGeometryInvalidated: () => {
         if (
           petWindow === null ||
@@ -165,6 +187,21 @@ if (primaryInstance) void app.whenReady().then(async () => {
     path.join(platformService.paths.userData, "thukuna-settings.json")
   );
   await settingsStore.load();
+  productivityTimerService = new ProductivityTimerService(
+    new ProductivityTimerStore(
+      path.join(platformService.paths.userData, "thukuna-productivity-timer.json")
+    ),
+    {
+      allowDevelopmentDurations: !app.isPackaged,
+      onChanged: (snapshot) => {
+        if (systemAwarenessService?.getSnapshot().sessionState === "active") {
+          sendToRenderer(IPC_CHANNELS.productivityTimerChanged, snapshot);
+        }
+        refreshTray();
+      }
+    }
+  );
+  await productivityTimerService.initialize();
   disposePhase15Ipc = registerPetWindowIpc(
     () => petWindow,
     platformService,
@@ -181,6 +218,45 @@ if (primaryInstance) void app.whenReady().then(async () => {
           throw new Error("System Awareness unavailable.");
         }
         return systemAwarenessService.getSnapshot();
+      }
+    },
+    {
+      allowDevelopmentDurations: !app.isPackaged,
+      get: () => {
+        if (productivityTimerService === null) {
+          throw new Error("Productivity timer unavailable.");
+        }
+        return productivityTimerService.getSnapshot();
+      },
+      start: (request) => {
+        if (productivityTimerService === null) {
+          throw new Error("Productivity timer unavailable.");
+        }
+        return productivityTimerService.startTimer(request);
+      },
+      pause: () => {
+        if (productivityTimerService === null) {
+          throw new Error("Productivity timer unavailable.");
+        }
+        return productivityTimerService.pause();
+      },
+      resume: () => {
+        if (productivityTimerService === null) {
+          throw new Error("Productivity timer unavailable.");
+        }
+        return productivityTimerService.resume();
+      },
+      cancel: () => {
+        if (productivityTimerService === null) {
+          throw new Error("Productivity timer unavailable.");
+        }
+        return productivityTimerService.cancel();
+      },
+      acknowledge: (completionId) => {
+        if (productivityTimerService === null) {
+          throw new Error("Productivity timer unavailable.");
+        }
+        return productivityTimerService.acknowledgeCompletion(completionId);
       }
     }
   );
@@ -199,9 +275,17 @@ if (primaryInstance) void app.whenReady().then(async () => {
             void updateSettings({ [key]: value });
           },
           resetPosition,
+          startTimer: (presetId: ProductivityTimerPresetId) => {
+            void productivityTimerService
+              ?.startTimer(requestForProductivityTimerPreset(presetId));
+          },
+          pauseTimer: () => { void productivityTimerService?.pause(); },
+          resumeTimer: () => { void productivityTimerService?.resume(); },
+          cancelTimer: () => { void productivityTimerService?.cancel(); },
           quit: quitThukuna
         },
-        platformService.capabilities
+        platformService.capabilities,
+        productivityTimerService.getSnapshot()
       );
     } catch (error: unknown) {
       console.warn("[THUKUNA] System tray is unavailable.", error);
@@ -216,6 +300,7 @@ if (primaryInstance) {
     disposePhase15Ipc?.();
     disposePhase15Ipc = null;
     systemAwarenessService?.dispose();
+    productivityTimerService?.dispose();
   });
 
   app.on("window-all-closed", () => {

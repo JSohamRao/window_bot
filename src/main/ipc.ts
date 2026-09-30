@@ -20,6 +20,12 @@ import {
 import type { PlatformService } from "./platform/PlatformService";
 import { PET_WINDOW_HEIGHT, PET_WINDOW_WIDTH } from "./petWindow";
 import type { SystemAwarenessSnapshot } from "../shared/systemAwareness";
+import {
+  isProductivityTimerStartRequest,
+  type ProductivityTimerCommandResult,
+  type ProductivityTimerSnapshot,
+  type ProductivityTimerStartRequest
+} from "../shared/productivityTimer";
 
 interface DragSession {
   windowId: number;
@@ -82,6 +88,15 @@ export const registerPetWindowIpc = (
   },
   systemAwareness?: {
     get(): SystemAwarenessSnapshot;
+  },
+  productivityTimer?: {
+    readonly allowDevelopmentDurations: boolean;
+    get(): ProductivityTimerSnapshot;
+    start(request: ProductivityTimerStartRequest): Promise<ProductivityTimerCommandResult>;
+    pause(): Promise<ProductivityTimerCommandResult>;
+    resume(): Promise<ProductivityTimerCommandResult>;
+    cancel(): Promise<ProductivityTimerCommandResult>;
+    acknowledge(completionId: string): Promise<ProductivityTimerCommandResult>;
   }
 ): (() => void) => {
   let dragSession: DragSession | null = null;
@@ -220,9 +235,81 @@ export const registerPetWindowIpc = (
     );
   }
 
+  if (productivityTimer !== undefined) {
+    ipcMain.handle(
+      IPC_CHANNELS.productivityTimerGet,
+      (event): ProductivityTimerSnapshot => {
+        if (getPetWindowForEvent(event, getPetWindow) === null) {
+          throw new Error("Invalid productivity-timer request.");
+        }
+        return productivityTimer.get();
+      }
+    );
+    ipcMain.handle(
+      IPC_CHANNELS.productivityTimerStart,
+      async (event, request: unknown): Promise<ProductivityTimerCommandResult> => {
+        if (
+          getPetWindowForEvent(event, getPetWindow) === null ||
+          !isProductivityTimerStartRequest(
+            request,
+            productivityTimer.allowDevelopmentDurations
+          )
+        ) throw new Error("Invalid productivity-timer start request.");
+        return productivityTimer.start(request);
+      }
+    );
+    ipcMain.handle(
+      IPC_CHANNELS.productivityTimerPause,
+      async (event): Promise<ProductivityTimerCommandResult> => {
+        if (getPetWindowForEvent(event, getPetWindow) === null) {
+          throw new Error("Invalid productivity-timer pause request.");
+        }
+        return productivityTimer.pause();
+      }
+    );
+    ipcMain.handle(
+      IPC_CHANNELS.productivityTimerResume,
+      async (event): Promise<ProductivityTimerCommandResult> => {
+        if (getPetWindowForEvent(event, getPetWindow) === null) {
+          throw new Error("Invalid productivity-timer resume request.");
+        }
+        return productivityTimer.resume();
+      }
+    );
+    ipcMain.handle(
+      IPC_CHANNELS.productivityTimerCancel,
+      async (event): Promise<ProductivityTimerCommandResult> => {
+        if (getPetWindowForEvent(event, getPetWindow) === null) {
+          throw new Error("Invalid productivity-timer cancel request.");
+        }
+        return productivityTimer.cancel();
+      }
+    );
+    ipcMain.handle(
+      IPC_CHANNELS.productivityTimerAcknowledge,
+      async (event, completionId: unknown): Promise<ProductivityTimerCommandResult> => {
+        if (
+          getPetWindowForEvent(event, getPetWindow) === null ||
+          typeof completionId !== "string" ||
+          completionId.length === 0 ||
+          completionId.length > 128
+        ) throw new Error("Invalid productivity-timer completion acknowledgement.");
+        return productivityTimer.acknowledge(completionId);
+      }
+    );
+  }
+
   return () => {
     if (systemAwareness !== undefined) {
       ipcMain.removeHandler(IPC_CHANNELS.systemAwarenessGet);
+    }
+    if (productivityTimer !== undefined) {
+      ipcMain.removeHandler(IPC_CHANNELS.productivityTimerGet);
+      ipcMain.removeHandler(IPC_CHANNELS.productivityTimerStart);
+      ipcMain.removeHandler(IPC_CHANNELS.productivityTimerPause);
+      ipcMain.removeHandler(IPC_CHANNELS.productivityTimerResume);
+      ipcMain.removeHandler(IPC_CHANNELS.productivityTimerCancel);
+      ipcMain.removeHandler(IPC_CHANNELS.productivityTimerAcknowledge);
     }
   };
 };

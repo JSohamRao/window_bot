@@ -2,6 +2,8 @@ import type { DevCommandController, DevCommandTelemetry } from "./DevCommandCont
 import { getDevPanelCommands } from "./devCommandRegistry";
 import type { SystemAwarenessControllerSnapshot } from "../engine/SystemAwarenessController";
 import { formatSystemAwarenessDiagnostics } from "./SystemAwarenessDiagnostics";
+import type { ProductivityTimerSnapshot } from "../../shared/productivityTimer";
+import { formatProductivityTimerDiagnostics } from "./ProductivityTimerDiagnostics";
 
 export interface DevCommandPanel {
   readonly element: HTMLElement;
@@ -11,12 +13,19 @@ export interface DevCommandPanel {
     behaviorState: string | null,
     snapshot: SystemAwarenessControllerSnapshot
   ): void;
+  updateProductivityTimer(snapshot: ProductivityTimerSnapshot): void;
   destroy(): void;
+}
+
+export interface DevTimerActions {
+  startFiveSecondTimer(): void;
+  startTenSecondTimer(): void;
 }
 
 export const createDevCommandPanel = (
   mount: HTMLElement,
-  controller: DevCommandController
+  controller: DevCommandController,
+  timerActions?: DevTimerActions
 ): DevCommandPanel => {
   const panel = document.createElement("section");
   panel.className = "dev-command-panel";
@@ -28,6 +37,32 @@ export const createDevCommandPanel = (
   awareness.setAttribute("aria-live", "polite");
   awareness.textContent = "SYSTEM AWARENESS\nWaiting for current state...";
   panel.append(awareness);
+
+  const timer = document.createElement("output");
+  timer.className = "dev-command-panel__timer";
+  timer.setAttribute("aria-live", "polite");
+  timer.textContent = "PRODUCTIVITY TIMER\nWaiting for current state...";
+  panel.append(timer);
+  const cleanups: Array<() => void> = [];
+
+  if (timerActions !== undefined) {
+    const timerGrid = document.createElement("div");
+    timerGrid.className = "dev-command-panel__timer-grid";
+    const timerButtons = [
+      ["Timer 5s", timerActions.startFiveSecondTimer],
+      ["Timer 10s", timerActions.startTenSecondTimer]
+    ] as const;
+    for (const [label, action] of timerButtons) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "dev-command-panel__button";
+      button.textContent = label;
+      button.addEventListener("click", action);
+      cleanups.push(() => button.removeEventListener("click", action));
+      timerGrid.append(button);
+    }
+    panel.append(timerGrid);
+  }
 
   const heading = document.createElement("strong");
   heading.className = "dev-command-panel__heading";
@@ -41,7 +76,6 @@ export const createDevCommandPanel = (
 
   const grid = document.createElement("div");
   grid.className = "dev-command-panel__grid";
-  const cleanups: Array<() => void> = [];
   for (const command of getDevPanelCommands()) {
     const button = document.createElement("button");
     button.type = "button";
@@ -75,6 +109,10 @@ export const createDevCommandPanel = (
     updateSystemAwareness: (behaviorState, snapshot) => {
       const text = formatSystemAwarenessDiagnostics(behaviorState, snapshot);
       if (awareness.textContent !== text) awareness.textContent = text;
+    },
+    updateProductivityTimer: (snapshot) => {
+      const text = formatProductivityTimerDiagnostics(snapshot);
+      if (timer.textContent !== text) timer.textContent = text;
     },
     destroy: () => {
       for (const cleanup of cleanups) cleanup();
